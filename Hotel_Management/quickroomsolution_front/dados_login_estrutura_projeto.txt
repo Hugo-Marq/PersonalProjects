@@ -1,0 +1,67 @@
+estrutura do trabalho
+
+src/
+|-- components/
+|   |-- Navbar.js
+|-- pages/
+|   |-- HomePage.js
+|   |-- LoginPage.js
+|   |-- HotelReservations.js
+|   |-- ManageTickets.js
+|   |-- ManageSuppliers.js
+|   |-- ManageBudgets.js
+|   |-- RoomManagement.js
+|   |-- Reservations.js
+|   |-- AccountDetails.js
+|   |-- CleaningTickets.js
+|   |-- MaintenanceTickets.js
+|   |-- Budgets.js
+|-- styles/
+|   |-- NavbarStyle.css
+|-- App.js
+|-- index.js
+|-- menuData.js
+
+
+
+TICKETS
+id funcionário
+ID quarto terá de assumir a partir do memoneto em que crio um novo ticket nesse quarto.
+DESCRIÇÃO:
+
+reservas do cliente
+ e listagem de reservas (Gerente e receção), ver função count do front end para comunicar com o backend (tipologia 1, 2 e 3 )
+preço single: fazer fetch ao preco de cada quarto.
+
+
+
+gerente:
+username:5
+pass: string
+
+receção:
+username:6
+pass:string
+
+
+limpeza:
+username:7
+pass: string
+
+
+manutenção:
+username:
+password: string
+
+
+cliente:
+username:5
+passoword: string
+
+cliente:
+username:6
+passoword: string
+
+cliente:
+username:7
+passoword: string

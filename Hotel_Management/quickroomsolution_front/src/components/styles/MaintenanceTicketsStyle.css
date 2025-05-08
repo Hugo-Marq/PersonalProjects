@@ -1,0 +1,107 @@
+/* src/MaintenanceTickets.css */
+
+/* Estilos para o formulário */
+.maintenance-container {
+    width: 100%;
+    margin: 0;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+    box-sizing: border-box;
+}
+
+.maintenance-container h1, .maintenance-container h2 {
+    color: #7C6A46;
+    margin-bottom: 20px;
+    
+}
+
+.maintenance-container div {
+    margin-bottom: 10px;
+    color: #7C6A46;
+}
+
+.maintenance-container label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.maintenance-container input[type="text"],
+.maintenance-container input[type="date"] {
+    width: 50%;  /* Ajuste o tamanho dos campos */
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    color: #7C6A46
+}
+
+.maintenance-container .button-container {
+    display: flex;
+    justify-content: flex-end;  /* Alinha os botões à direita */
+    margin-right: 300px;
+}
+
+.maintenance-container button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 10px;  /* Espaço entre os botões */
+}
+
+.maintenance-container button[type="submit"] {
+    background-color:#7C6A46;
+    color: white;
+}
+
+.maintenance-container button[type="submit"]:hover {
+    background-color: #36290d;
+}
+
+.maintenance-container button[type="button"] {
+    background-color: #f44336;
+    color: white;
+}
+
+.maintenance-container button[type="button"]:hover {
+    background-color: #d32f2f;
+}
+
+/* Estilos para a mensagem de erro */
+.error-message {
+    color: red;
+    margin-top: 10px;
+}
+
+/* Estilos para a pop-up de sucesso */
+.success-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    z-index: 999;
+}
+
+.success-popup p {
+    margin-bottom: 10px;
+}
+
+.success-popup button {
+    background-color: #4caf50;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.success-popup button:hover {
+    background-color: #45a049;
+}

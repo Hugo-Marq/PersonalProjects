@@ -1,0 +1,50 @@
+.ContainerHeaderHomepage {
+  display: flex;
+  flex-direction: wrap;
+  background-color: #faf7f7;
+  margin: 0px 0px 0px 0px;
+  padding: 0 100px;
+  
+}
+
+.column-left {
+  flex: 1; /* Ocupa 50% do espaço */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-right: 10px; /* Adicione algum espaço entre a imagem e o texto */
+}
+
+.column-right {
+  flex: 1; /* Ocupa 50% do espaço */
+  display: flex;
+  align-items: center; /* Centraliza verticalmente o conteúdo */
+}
+
+.quickroom.text {
+  color: #7c6a46;
+  font: 48px Cuprum, sans-serif;
+  text-align: left;
+}
+
+.hotelfor.text {
+  margin-top: 20px;
+  font: 55px Raleway, sans-serif;
+  text-align: left;
+}
+
+.everymoment.text {
+  margin-top: 38px;
+  font: 500 15px Raleway, sans-serif;
+  text-align: left;
+}
+
+.imgheaderhomepage {
+  width: 100%;
+  height: auto; /* Define a altura automaticamente para manter a proporção */
+  max-width: 100%; /* Garante que a imagem não ultrapasse a largura do seu contêiner */
+  object-fit: cover; /* Faz com que a imagem cubra toda a área */
+}
+
+
+

@@ -1,0 +1,91 @@
+/* ManageTicketsStyle.css */
+
+.manage-tickets-container {
+  padding: 20px;
+}
+
+.manage-tickets-container h1 {
+  color: #7C6A46;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.filter-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.filter-checkbox {
+  margin-right: 10px;
+  color: #7C6A46;
+}
+
+.ticket-list {
+  list-style: none;
+  padding: 0;
+}
+
+.ticket-box {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.ticket-details {
+  flex: 1;
+  color: #7C6A46;
+  font-weight: bold;
+  text-align: left;
+}
+
+.ticket-actions button {
+  padding: 10px 20px;
+  margin-left: 10px;
+  border: none;
+  background-color: #7C6A46;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.ticket-actions button:hover {
+  background-color: #6b5940;
+}
+
+.no-tickets {
+  color: #7C6A46;
+}
+
+.error-message {
+  color: red;
+}
+
+.modal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  margin-right: -50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  outline: none;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+}

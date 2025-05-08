@@ -1,0 +1,22 @@
+.image-card {
+    background-color: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    max-width: 400px;
+    margin: 10px auto;
+  }
+  
+  .room-image {
+    width: 50%;
+    height: auto;
+  }
+  
+  .room-details {
+    padding: 10px;
+    text-align: center;
+    font-size: 14px;
+    
+  }
+  

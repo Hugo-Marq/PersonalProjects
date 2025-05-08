@@ -1,0 +1,83 @@
+.budget-list {
+    list-style: none;
+    padding: 10px;
+    text-align: left;
+  }
+  
+  .budget-container {
+    width: auto; 
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    position: relative; /* Added position relative for status text positioning */
+  }
+  
+  .budget-details {
+    margin-bottom: 10px;
+  }
+  
+  .budget-actions button {
+    padding: 10px 20px;
+    margin-left: 10px;
+    border: none;
+    background-color: #7C6A46;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .budget-actions button:hover {
+    background-color: #6b5940;
+  }
+  
+  .confirmation-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .confirmation-dialog p {
+    margin-bottom: 10px;
+  }
+  
+  .confirmation-dialog button {
+    margin-right: 10px;
+  }
+  
+  .error-message {
+    color: red;
+  }
+  
+  .no-budgets {
+    font-style: italic;
+  }
+  
+  .accepted-budget-text,
+.rejected-budget-text {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background-color: green;
+  color: white;
+  padding: 5px;
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.rejected-budget-text {
+  background-color: red;
+}
+
+/* Hide buttons when the budget is accepted or rejected */
+.budget-container.accepted .budget-actions,
+.budget-container.rejected .budget-actions {
+  display: none;
+}

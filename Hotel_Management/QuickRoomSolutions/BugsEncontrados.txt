@@ -1,0 +1,4 @@
+﻿Hugo 24/03: Tabela "Fornecedor" no SQL não auto incrementa, origina erro por repetição de ID's num POST Request.
+Solução:
+	No Script da BD colocar *[FornecedorId] [int] IDENTITY(1,1) NOT NULL,*
+	No Ficheiro de migração, Update-Migration

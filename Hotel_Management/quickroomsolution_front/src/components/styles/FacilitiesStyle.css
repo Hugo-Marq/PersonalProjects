@@ -1,0 +1,62 @@
+/* facilities.css */
+
+
+.containerfacilities {
+  max-width: 1400px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+  margin-top: 50px;
+  padding: 20px 20px;
+  text-align: center;
+  
+}
+
+.titlefacilities {
+  font-size: 32px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.subtitlefacilities {
+  font-size: 18px;
+  margin-bottom: 40px;
+}
+
+.facility-container-line1,
+.facility-container-line2 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.facility {
+  flex: 1;
+  margin: 0 10px;
+}
+
+.image-container {
+  width: 150px;
+  height: 150px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  padding: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.imagefacilities {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.facility-title {
+  font-size: 16px;
+  margin-top: 10px;
+  text-align: center;
+}

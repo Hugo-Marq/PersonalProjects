@@ -1,0 +1,18 @@
+/* BookConfirmationPageStyle.css */
+
+.booking-confirmation-title {
+    color: #7C6A46;
+}
+
+
+.input-num-cartao {
+  width: 40%;
+  padding: 8px;
+  margin-top: 10px;
+  margin-right: 120px;
+  border: 2px solid #7c6a46;
+  border-radius: 6px;
+  box-sizing: border-box;
+  color: #7c6a46;
+  font-weight: bold;
+}

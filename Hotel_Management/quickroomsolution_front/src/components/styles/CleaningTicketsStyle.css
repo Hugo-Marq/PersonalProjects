@@ -1,0 +1,111 @@
+/* CleaningTickets.css */
+
+.cleaning-tickets-container {
+    font-family: Arial, sans-serif;
+  }
+  
+  .cleaning-tickets-container h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #7c6a46;
+    font-weight: bold;
+  }
+  
+  .cleaning-tickets-container ul {
+    list-style-type: none;
+    color: #7c6a46;
+    padding: 0;
+    text-align: left;
+  }
+
+  .cleaning-tickets-container li p {
+    margin: 20px; /* Adicione a margem desejada apenas para parágrafos */
+  }
+  
+  .cleaning-tickets-container li {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .cleaning-tickets-container p {
+    margin: 5px 0;
+  }
+  
+  .cleaning-tickets-container button {
+    background-color: #7c6a46;
+    color: #fff;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 16px;
+    cursor: pointer;
+    margin-right: 10px;
+  }
+  
+  .cleaning-tickets-container button:hover {
+    background-color: #423213;
+  }
+  
+  .popup {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .popup-inner {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+  }
+  
+  .popup h2 {
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+  
+  .popup textarea {
+    width: 100%;
+    height: 100px;
+    margin-bottom: 10px;
+    padding: 5px;
+    resize: none;
+  }
+  
+  .popup button {
+    background-color:  #7c6a46;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 16px;
+    cursor: pointer;
+    margin-right: 10px;
+  }
+  
+  .popup button:hover {
+    background-color:  #7c6a46;
+  }
+  
+  .cleaning-tickets-container .issue-description {
+    width: 100%;
+    height: 100px;
+    margin-bottom: 10px;
+    padding: 5px;
+    resize: none;
+  }
+  
+  .cleaning-tickets-container .submit-button {
+    background-color: #28a745;
+  }
+  
+  .cleaning-tickets-container .cancel-button {
+    background-color: #dc3545;
+  }
+  

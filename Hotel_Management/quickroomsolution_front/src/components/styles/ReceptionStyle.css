@@ -1,0 +1,31 @@
+
+
+.reception-container {
+    display: flex;
+    flex-direction: wrap;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 20px;
+    width: 100%;
+    height: auto;
+    margin-left: 0px;
+    margin-right: 0px;
+  }
+  
+  .reception-image {
+    width: 100%;
+    height: 800px;
+    object-fit: cover;
+    }
+  
+  .reception-text {
+    position: absolute;
+    top: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: white;
+    font-size: 55px;
+    text-align: center;
+    
+}
+  
