@@ -3,8 +3,11 @@
 //                          2024/2025
 //             ENGENHARIA DE SISTEMAS INFORMÁTICOS
 //                    VISÃO POR COMPUTADOR
-//
-//             [  DUARTE DUQUE - dduque@ipca.pt  ]
+//						 [  GRUPO 15  ]
+//					 20349 - Flávio Costa
+//					 24160 - Hugo Marques
+//					 26402 - Rafael Ferreira
+//					 23036 - Marco Alves
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 // Desabilita (no MSVC++) warnings de funções não seguras (fopen, sscanf, etc...)
@@ -17,7 +20,19 @@
 #include <math.h>
 #include <stdbool.h>
 #include "vc.h"
+#include "constants.h"
 
+#pragma region I/O Functions
+
+/**
+ * Aloca memória para uma nova imagem.
+ * 
+ * \param width - largura da imagem
+ * \param height - altura da imagem
+ * \param channels - número de canais (1 = grayscale, 3 = RGB)
+ * \param levels - número de níveis (2 = binário, 256 = grayscale)
+ * \return - ponteiro para a nova imagem ou NULL em caso de erro
+ */
 IVC* vc_image_new(int width, int height, int channels, int levels)
 {
 	IVC* image = (IVC*)malloc(sizeof(IVC));
@@ -40,6 +55,12 @@ IVC* vc_image_new(int width, int height, int channels, int levels)
 	return image;
 }
 
+/**
+ * Liberta a memória alocada para uma imagem.
+ *
+ * \param image - ponteiro para a imagem a libertar
+ * \return - NULL
+ */
 IVC* vc_image_free(IVC* image)
 {
 	if (image != NULL)
@@ -49,15 +70,20 @@ IVC* vc_image_free(IVC* image)
 			free(image->data);
 			image->data = NULL;
 		}
-
 		free(image);
 		image = NULL;
 	}
-
 	return image;
 }
 
-#pragma region standard_functions
+/**
+ * Lê um token de um arquivo, ignorando comentários e espaços em branco.
+ *
+ * \param file - ponteiro para o arquivo
+ * \param tok - buffer para armazenar o token lido
+ * \param len - tamanho máximo do buffer
+ * \return - ponteiro para o buffer do token
+ */
 char* netpbm_get_token(FILE* file, char* tok, int len)
 {
 	char* t;
@@ -90,6 +116,15 @@ char* netpbm_get_token(FILE* file, char* tok, int len)
 	return tok;
 }
 
+/**
+ * Converte uma imagem binária (unsigned char) para uma imagem em bits (unsigned char).
+ *
+ * \param datauchar - ponteiro para os dados da imagem binária
+ * \param databit - ponteiro para os dados da imagem em bits
+ * \param width - largura da imagem
+ * \param height - altura da imagem
+ * \return - número total de bytes convertidos
+ */
 long int unsigned_char_to_bit(unsigned char* datauchar, unsigned char* databit, int width, int height)
 {
 	int x, y;
@@ -134,6 +169,14 @@ long int unsigned_char_to_bit(unsigned char* datauchar, unsigned char* databit, 
 	return counttotalbytes;
 }
 
+/**
+ * Converte uma imagem em bits (unsigned char) para uma imagem binária (unsigned char).
+ *
+ * \param databit - ponteiro para os dados da imagem em bits
+ * \param datauchar - ponteiro para os dados da imagem binária
+ * \param width - largura da imagem
+ * \param height - altura da imagem
+ */
 void bit_to_unsigned_char(unsigned char* databit, unsigned char* datauchar, int width, int height)
 {
 	int x, y;
@@ -172,6 +215,12 @@ void bit_to_unsigned_char(unsigned char* databit, unsigned char* datauchar, int 
 	}
 }
 
+/**
+ * Lê uma imagem de um arquivo no formato PBM, PGM ou PPM.
+ *
+ * \param filename - nome do arquivo a ler
+ * \return - ponteiro para a imagem lida ou NULL em caso de erro
+ */
 IVC* vc_read_image(char* filename)
 {
 	FILE* file = NULL;
@@ -291,6 +340,13 @@ IVC* vc_read_image(char* filename)
 	return image;
 }
 
+/**
+ * Escreve uma imagem em um arquivo no formato PBM, PGM ou PPM.
+ *
+ * \param filename - nome do arquivo a escrever
+ * \param image - ponteiro para a imagem a escrever
+ * \return - 1 em caso de sucesso, 0 em caso de erro
+ */
 int vc_write_image(char* filename, IVC* image)
 {
 	FILE* file = NULL;
@@ -347,717 +403,28 @@ int vc_write_image(char* filename, IVC* image)
 	return 0;
 }
 
-int vc_gray_negative(IVC* srcdst)
-{
-	if (srcdst == NULL) return 0;
-
-	for (int i = 0; i < srcdst->bytesperline * srcdst->height; i += srcdst->channels) {
-		srcdst->data[i] = 255 - srcdst->data[i];
-	}
-	return 1;
-}
-
-int vc_rgb_get_red_gray(IVC* srcdst) {
-	int width = srcdst->width;
-	int height = srcdst->height;
-	int channels = srcdst->channels;
-	int bytesperline = srcdst->bytesperline;
-	int x, y;
-	long int pos;
-	unsigned char* data = (unsigned char*)srcdst->data;
-
-	if ((srcdst->width <= 0) || (srcdst->height <= 0) || srcdst->data == NULL) return 0;
-	if (channels != 3) return 0;
-	if (srcdst->channels == 3) {
-		for (y = 0; y < height; y++)
-			for (x = 0; x < width; x++) {
-				pos = y * srcdst->bytesperline + x * srcdst->channels;
-				data[pos] = data[pos];
-				data[pos + 1] = data[pos];
-				data[pos + 2] = data[pos];
-			}
-	}
-	return 1;
-}
-
-int vc_rgb_get_green_gray(IVC* srcdst) {
-	int width = srcdst->width;
-	int height = srcdst->height;
-	int channels = srcdst->channels;
-	int bytesperline = srcdst->bytesperline;
-	int x, y;
-	long int pos;
-	unsigned char* data = (unsigned char*)srcdst->data;
-
-	if ((srcdst->width <= 0) || (srcdst->height <= 0) || srcdst->data == NULL) return 0;
-	if (channels != 3) return 0;
-	if (srcdst->channels == 3) {
-		for (y = 0; y < height; y++)
-			for (x = 0; x < width; x++) {
-				pos = y * srcdst->bytesperline + x * srcdst->channels;
-				data[pos] = data[pos + 1];
-				data[pos + 1] = data[pos + 1];
-				data[pos + 2] = data[pos + 1];
-			}
-	}
-	return 1;
-}
-
-int vc_rgb_get_blue_gray(IVC* srcdst) {
-	int width = srcdst->width;
-	int height = srcdst->height;
-	int channels = srcdst->channels;
-	int bytesperline = srcdst->bytesperline;
-	int x, y;
-	long int pos;
-	unsigned char* data = (unsigned char*)srcdst->data;
-
-	if ((srcdst->width <= 0) || (srcdst->height <= 0) || srcdst->data == NULL) return 0;
-	if (channels != 3) return 0;
-	if (srcdst->channels == 3) {
-		for (y = 0; y < height; y++)
-			for (x = 0; x < width; x++) {
-				pos = y * srcdst->bytesperline + x * srcdst->channels;
-				data[pos] = data[pos + 2];
-				data[pos + 1] = data[pos + 2];
-				data[pos + 2] = data[pos + 2];
-			}
-	}
-	return 1;
-}
-
-int vc_rgb_to_gray(IVC* src, IVC* dst)
-{
-	unsigned char* datasrc = (unsigned char*)src->data;
-	int bytesperline_src = src->width * src->channels;
-	int channels_src = src->channels;
-	unsigned char* datadst = (unsigned*)dst->data;
-	int bytesperline_dst = dst->width * dst->channels;
-	int channels_dst = dst->channels;
-
-	int width = src->width;
-	int height = src->height;
-	int x, y;
-	long int pos_src, pos_dst;
-	float rf, gf, bf;
-
-	if ((src->width <= 0) || (src->height <= 0) || (src->data == NULL)) return 0;
-	if ((src->width != dst->width) || (src->height != dst->height)) return 0;
-	if ((src->channels != 3) || (dst->channels != 1)) return 0;
-
-	for (y = 0; y < height; y++)
-	{
-		for (x = 0; x < width; x++)
-		{
-			pos_src = y * bytesperline_src + x * channels_src;
-			pos_dst = y * bytesperline_dst + x * channels_dst;
-
-			rf = (float)datasrc[pos_src];
-			gf = (float)datasrc[pos_src + 1];
-			bf = (float)datasrc[pos_src + 2];
-
-			datadst[pos_dst] = (unsigned char)((rf * 0.2999) + (gf * 0.587) + (bf * 0.114));
-		}
-	}
-	return 1;
-}
-
-int vc_scale_gray_to_rgb(IVC* src, IVC* dst) {
-	unsigned char* datasrc = (unsigned char*)src->data;
-	unsigned char* datadst = (unsigned char*)dst->data;
-	int width = src->width;
-	int height = src->height;
-	int x, y;
-	long int gray_pos, rgb_pos;
-
-	// Error checking
-	if (!src || !dst || !src->data || !dst->data) return 0;
-	if (src->width <= 0 || src->height <= 0) return 0;
-	if (src->width != dst->width || src->height != dst->height) return 0;
-	if (src->channels != 1 || dst->channels != 3) return 0;
-
-	for (y = 0; y < height; y++) {
-		for (x = 0; x < width; x++) {
-			gray_pos = y * width + x;        // Position in grayscale image
-			rgb_pos = (y * width + x) * 3;   // Position in RGB image
-			unsigned char gray = datasrc[gray_pos];  // Store grayscale value
-
-			// Mapping grayscale values to RGB
-			if (gray < 64) {
-				datadst[rgb_pos] = 0;
-				datadst[rgb_pos + 1] = gray * 4;  // Scale to keep a smooth gradient
-				datadst[rgb_pos + 2] = 255;
-			}
-			else if (gray < 128) {
-				datadst[rgb_pos] = 0;
-				datadst[rgb_pos + 1] = 255;
-				datadst[rgb_pos + 2] = (128 - gray) * 4; // Inverted smooth gradient
-			}
-			else if (gray < 192) {
-				datadst[rgb_pos] = (gray - 128) * 4;  // Smooth transition from green to red
-				datadst[rgb_pos + 1] = 255;
-				datadst[rgb_pos + 2] = 0;
-			}
-			else {
-				datadst[rgb_pos] = 255;
-				datadst[rgb_pos + 1] = (255 - gray) * 4;  // Gradual fade of green
-				datadst[rgb_pos + 2] = 0;
-			}
-		}
-	}
-	return 1;
-}
-
-int vc_gray_to_binary_global_mean(IVC* src, IVC* dst) {
-	unsigned char* datasrc = (unsigned char*)src->data;
-	unsigned char* datadst = (unsigned char*)dst->data;
-	int bytesperline = src->width * src->channels;
-	int channels = src->channels;
-	int width = src->width;
-	int height = src->height;
-	int x, y;
-	long int pos;
-	long sum = 0;
-	float mean;
-	// Error checking
-	if (!src || !dst || !src->data || !dst->data) return 0;
-	if (src->width <= 0 || src->height <= 0) return 0;
-	if (src->width != dst->width || src->height != dst->height) return 0;
-	if (src->channels != 1 || dst->channels != 1) return 0;
-	for (y = 0; y < height; y++) {
-		for (x = 0; x < width; x++) {
-			pos = y * bytesperline + x * channels;
-			sum += datasrc[pos];
-		}
-	}
-	mean = (float)sum / (width * height);
-	for (y = 0; y < height; y++) {
-		for (x = 0; x < width; x++) {
-			pos = y * width + x;  // Position in grayscale image
-			unsigned char gray = datasrc[pos];  // Store grayscale value
-			// Thresholding
-			if (gray < mean) {
-				datadst[y * width + x] = 0;  // Black
-			}
-			else {
-				datadst[y * width + x] = 255;  // White
-			}
-		}
-	}
-	return 1;
-}
-
-int vc_binary_midpoint(IVC* src, IVC* dst, int kernelSize) {
-	unsigned char* datasrc = (unsigned char*)src->data;
-	unsigned char* datadst = (unsigned char*)dst->data;
-	int channels = src->channels;
-	int bytesperline = src->width * src->channels;
-	int width = src->width;
-	int height = src->height;
-	int x, y, kx, ky, k, l;
-	long int pos;
-	int offset = (kernelSize - 1) / 2;
-	int value, min, max;
-	unsigned char threshold;
-
-	// Error checking
-	if (!src || !dst || !src->data || !dst->data) return 0;
-	if (src->width <= 0 || src->height <= 0) return 0;
-	if (src->width != dst->width || src->height != dst->height) return 0;
-	if (src->channels != 1 || dst->channels != 1) return 0;
-
-	for (y = 0; y < height; y++) {
-		for (x = 0; x < width; x++) {
-			min = src->levels - 1;
-			max = 0;
-			for (ky = -offset; ky <= offset; ky++) {
-				for (kx = -offset; kx <= offset; kx++) {
-					if (((x + kx) >= 0) && ((x + kx) < width) && ((y + ky) >= 0) && ((y + ky) < height)) {
-						pos = (y + ky) * bytesperline + (x + kx) * channels;
-						if (datasrc[pos] < min) min = datasrc[pos];
-						if (datasrc[pos] > max) max = datasrc[pos];
-					}
-				}
-			}
-			threshold = (unsigned char)((min / 2) + (max / 2));
-
-			pos = y * bytesperline + x * channels;
-			if (datasrc[pos] < threshold)
-			{
-				datadst[pos] = 0;
-			}
-			else
-			{
-				datadst[pos] = 255;
-			}
-		}
-	}
-	return 1;
-}
-
-int vc_bernsen_threshold(IVC* src, IVC* dst, int kernelSize, int contrastThreshold) {
-	unsigned char* datasrc = (unsigned char*)src->data;
-	unsigned char* datadst = (unsigned char*)dst->data;
-	int channels = src->channels;
-	int bytesperline = src->width * src->channels;
-	int width = src->width;
-	int height = src->height;
-	int x, y, kx, ky;
-	long int pos;
-	int offset = (kernelSize - 1) / 2;
-	int min, max, contrast;
-	unsigned char threshold;
-
-	// Error checking
-	if (!src || !dst || !src->data || !dst->data) return 0;
-	if (src->width <= 0 || src->height <= 0) return 0;
-	if (src->width != dst->width || src->height != dst->height) return 0;
-	if (src->channels != 1 || dst->channels != 1) return 0;
-
-	for (y = 0; y < height; y++) {
-		for (x = 0; x < width; x++) {
-			min = src->levels - 1;
-			max = 0;
-			// Loop through the kernel
-			for (ky = -offset; ky <= offset; ky++) {
-				for (kx = -offset; kx <= offset; kx++) {
-					if (((x + kx) >= 0) && ((x + kx) < width) && ((y + ky) >= 0) && ((y + ky) < height)) {
-						pos = (y + ky) * bytesperline + (x + kx) * channels;
-						if (datasrc[pos] < min) min = datasrc[pos];
-						if (datasrc[pos] > max) max = datasrc[pos];
-					}
-				}
-			}
-			contrast = max - min;
-
-			// Apply the Bernsen threshold based on local contrast
-			if (contrast < contrastThreshold) {
-				threshold = (unsigned char)((min + max) / 2);
-			}
-			else {
-				threshold = datasrc[y * bytesperline + x * channels];
-			}
-
-			pos = y * bytesperline + x * channels;
-			if (datasrc[pos] < threshold) {
-				datadst[pos] = 0;
-			}
-			else {
-				datadst[pos] = 255;
-			}
-		}
-	}
-	return 1;
-}
-
-int vc_niblack_threshold(IVC* src, IVC* dst, int kernelSize, float k) {
-	unsigned char* datasrc = (unsigned char*)src->data;
-	unsigned char* datadst = (unsigned char*)dst->data;
-	int channels = src->channels;
-	int bytesperline = src->width * src->channels;
-	int width = src->width;
-	int height = src->height;
-	int x, y, kx, ky;
-	long int pos;
-	int offset = (kernelSize - 1) / 2;
-	int sum;
-	float mean, variance, stddev, threshold;
-
-	// Error checking
-	if (!src || !dst || !src->data || !dst->data) return 0;
-	if (src->width <= 0 || src->height <= 0) return 0;
-	if (src->width != dst->width || src->height != dst->height) return 0;
-	if (src->channels != 1 || dst->channels != 1) return 0;
-
-	for (y = 0; y < height; y++) {
-		for (x = 0; x < width; x++) {
-			sum = 0;
-			float sumsq = 0.0f;
-			// Loop through the kernel
-			for (ky = -offset; ky <= offset; ky++) {
-				for (kx = -offset; kx <= offset; kx++) {
-					if (((x + kx) >= 0) && ((x + kx) < width) && ((y + ky) >= 0) && ((y + ky) < height)) {
-						pos = (y + ky) * bytesperline + (x + kx) * channels;
-						sum += datasrc[pos];
-						sumsq += datasrc[pos] * datasrc[pos];
-					}
-				}
-			}
-
-			// Calculate the mean and standard deviation of the neighborhood
-			int totalPixels = kernelSize * kernelSize;
-			mean = (float)sum / totalPixels;
-			variance = (float)(sumsq / totalPixels - mean * mean);
-			stddev = sqrt(variance);
-
-			// Apply the Niblack threshold
-			threshold = mean + k * stddev;
-
-			// Assign the thresholded pixel
-			pos = y * bytesperline + x * channels;
-			if (datasrc[pos] < threshold) {
-				datadst[pos] = 0;
-			}
-			else {
-				datadst[pos] = 255;
-			}
-		}
-	}
-	return 1;
-}
-
-int vc_binary_open(IVC* src, IVC* dst, int kernelSize) {
-	IVC* temp = vc_image_new(src->width, src->height, src->channels, src->levels);
-	if (!temp) return 0;
-	if (!vc_binary_erosion(src, temp, kernelSize)) return 0;
-	if (!vc_binary_dilation(temp, dst, kernelSize)) return 0;
-	vc_image_free(temp);
-	return 1;
-}
-
-int vc_binary_close(IVC* src, IVC* dst, int kernelSize) {
-	IVC* temp = vc_image_new(src->width, src->height, src->channels, src->levels);
-	if (!temp) return 0;
-	if (!vc_binary_dilation(src, temp, kernelSize)) return 0;
-	if (!vc_binary_erosion(temp, dst, kernelSize)) return 0;
-	vc_image_free(temp);
-	return 1;
-}
-
-int vc_greyscale_dilation(IVC* src, IVC* dst, int kernelSize) {
-	unsigned char* datasrc = (unsigned char*)src->data;
-	unsigned char* datadst = (unsigned char*)dst->data;
-	int channels = src->channels;
-	int bytesperline = src->width * src->channels;
-	int width = src->width;
-	int height = src->height;
-	int x, y, kx, ky;
-	long int pos;
-	int offset = (kernelSize - 1) / 2;
-
-	// Error checking
-	if (!src || !dst || !src->data || !dst->data) return 0;
-	if (src->width <= 0 || src->height <= 0) return 0;
-	if (src->width != dst->width || src->height != dst->height) return 0;
-	if (src->channels != 1 || dst->channels != 1) return 0;
-
-	// Perform binary dilation
-	for (y = 0; y < height; y++) {
-		for (x = 0; x < width; x++) {
-			unsigned char dilated = 0;
-			// Loop through the kernel
-			for (ky = -offset; ky <= offset; ky++) {
-				for (kx = -offset; kx <= offset; kx++) {
-					if (((x + kx) >= 0) && ((x + kx) < width) && ((y + ky) >= 0) && ((y + ky) < height)) {
-						pos = (y + ky) * bytesperline + (x + kx) * channels;
-						if (datasrc[pos] > dilated) { // If any pixel in the kernel is greater than dilated, set dilated to that pixel value
-							dilated = datasrc[pos];
-						}
-					}
-				}
-			}
-			pos = y * bytesperline + x * channels;
-			datadst[pos] = dilated;
-		}
-	}
-	return 1;
-}
-
-int vc_greyscale_erosion(IVC* src, IVC* dst, int kernelSize) {
-	unsigned char* datasrc = (unsigned char*)src->data;
-	unsigned char* datadst = (unsigned char*)dst->data;
-	int channels = src->channels;
-	int bytesperline = src->width * src->channels;
-	int width = src->width;
-	int height = src->height;
-	int x, y, kx, ky;
-	long int pos;
-	int offset = (kernelSize - 1) / 2;
-
-	// Error checking
-	if (!src || !dst || !src->data || !dst->data) return 0;
-	if (src->width <= 0 || src->height <= 0) return 0;
-	if (src->width != dst->width || src->height != dst->height) return 0;
-	if (src->channels != 1 || dst->channels != 1) return 0;
-
-	// Perform binary dilation
-	for (y = 0; y < height; y++) {
-		for (x = 0; x < width; x++) {
-			unsigned char eroded = src->levels - 1;
-			// Loop through the kernel
-			for (ky = -offset; ky <= offset; ky++) {
-				for (kx = -offset; kx <= offset; kx++) {
-					if (((x + kx) >= 0) && ((x + kx) < width) && ((y + ky) >= 0) && ((y + ky) < height)) {
-						pos = (y + ky) * bytesperline + (x + kx) * channels;
-						if (datasrc[pos] < eroded) { // If any pixel in the kernel is lesser than eroded, set eroded to that pixel value
-							eroded = datasrc[pos];
-						}
-					}
-				}
-			}
-			pos = y * bytesperline + x * channels;
-			datadst[pos] = eroded;
-		}
-	}
-	return 1;
-}
-
-int vc_greyscale_open(IVC* src, IVC* dst, int kernelSize) {
-	IVC* temp = vc_image_new(src->width, src->height, src->channels, src->levels);
-	if (!temp) return 0;
-	if (!vc_greyscale_erosion(src, temp, kernelSize)) return 0;
-	if (!vc_greyscale_dilation(temp, dst, kernelSize)) return 0;
-	vc_image_free(temp);
-	return 1;
-}
-
-int vc_greyscale_close(IVC* src, IVC* dst, int kernelSize) {
-	IVC* temp = vc_image_new(src->width, src->height, src->channels, src->levels);
-	if (!temp) return 0;
-	if (!vc_greyscale_dilation(src, temp, kernelSize)) return 0;
-	if (!vc_greyscale_erosion(temp, dst, kernelSize)) return 0;
-	vc_image_free(temp);
-	return 1;
-}
-
-IVC* vc_gray_histogram_show(IVC* src) {
-	// Error checking
-	if (src == NULL || src->data == NULL) return NULL;
-	if (src->width <= 0 || src->height <= 0 || src->channels != 1) return NULL;
-
-	unsigned char* datasrc = (unsigned char*)src->data;
-	int width = src->width;
-	int height = src->height;
-	int channels = src->channels;
-	int bytesperline = width * channels;
-	long int pos;
-	int x, y, i;
-
-	// Create a new image for histogram display (256x256 grayscale)
-	IVC* dst = vc_image_new(256, 256, 1, 255);
-	if (dst == NULL) return NULL;
-
-	unsigned char* datadst = (unsigned char*)dst->data;
-	int hist[256] = { 0 };
-	float histmax = 0.0f;
-	long int nPixels = width * height;
-
-	// Count the frequency of each grayscale level
-	for (pos = 0; pos < nPixels; pos++) {
-		hist[datasrc[pos]]++;
-	}
-
-	// Find max histogram value for normalization
-	for (i = 0; i < 256; i++) {
-		if (hist[i] > histmax) histmax = (float)hist[i];
-	}
-
-	// Clear destination image (set all pixels to 255 = white)
-	for (pos = 0; pos < 256 * 256; pos++) {
-		datadst[pos] = 255;
-	}
-
-	// Draw histogram as vertical lines
-	for (x = 0; x < 256; x++) {
-		int barHeight = (int)((hist[x] / histmax) * 255.0f);  // Scale to image height
-		for (y = 255; y >= 255 - barHeight; y--) {
-			datadst[y * 256 + x] = 0;  // Draw in black
-		}
-	}
-
-	return dst;
-}
-
-int vc_gray_edge_prewitt(IVC* src, IVC* dst, float th) {
-	unsigned char* datasrc = (unsigned char*)src->data;
-	unsigned char* datadst = (unsigned char*)dst->data;
-	int width = src->width;
-	int height = src->height;
-	int channels = src->channels;
-	int bytesperline = width * channels;
-	long int pos;
-	int x, y;
-
-	// Error checking
-	if (!src || !dst || !src->data || !dst->data) return 0;
-	if (width <= 0 || height <= 0) return 0;
-	if (src->channels != 1 || dst->channels != 1) return 0;
-
-	// Initialize destination image
-	for (y = 0; y < height; y++) {
-		for (x = 0; x < width; x++) {
-			pos = y * bytesperline + x * channels;
-			datadst[pos] = 0; // Set all pixels to black initially
-		}
-	}
-
-	// Prewitt operator kernels
-	int Gx[3][3] = { { -1, 0, 1 }, { -1, 0, 1 }, { -1, 0, 1 } };
-	int Gy[3][3] = { { -1, -1, -1 }, { 0, 0, 0 }, { 1, 1, 1 } };
-
-	// Apply Prewitt operator
-	for (y = 1; y < height - 1; y++) {
-		for (x = 1; x < width - 1; x++) {
-			float sumX = 0.0f;
-			float sumY = 0.0f;
-
-			// Convolution with Prewitt kernels
-			for (int ky = -1; ky <= 1; ky++) {
-				for (int kx = -1; kx <= 1; kx++) {
-					pos = (y + ky) * bytesperline + (x + kx) * channels;
-					sumX += datasrc[pos] * Gx[ky + 1][kx + 1];
-					sumY += datasrc[pos] * Gy[ky + 1][kx + 1];
-				}
-			}
-
-			float magnitude = sqrt(sumX * sumX + sumY * sumY);
-
-			// Thresholding
-			pos = y * bytesperline + x * channels;
-			if (magnitude > th) {
-				datadst[pos] = 255; // Edge detected
-			}
-			else {
-				datadst[pos] = 0; // No edge
-			}
-		}
-	}
-
-	return 1;
-}
-
-int vc_gray_lowpass_mean_filter(IVC* src, IVC* dst, int kernel) {
-	unsigned char* datasrc = (unsigned char*)src->data;
-	unsigned char* datadst = (unsigned char*)dst->data;
-	int channels = src->channels;
-	int bytesperline = src->width * src->channels;
-	int width = src->width;
-	int height = src->height;
-	int x, y, kx, ky;
-	long int pos;
-	int offset = (kernel - 1) / 2;
-	float mean = 0.0;
-
-	// Error checking
-	if (!src || !dst || !src->data || !dst->data) return 0;
-	if (src->width <= 0 || src->height <= 0) return 0;
-	if (src->width != dst->width || src->height != dst->height) return 0;
-	if (src->channels != 1 || dst->channels != 1) return 0;
-
-	// Perform binary dilation
-	for (y = offset; y < height - offset; y++) {
-		for (x = offset; x < width - offset; x++) {
-			float mean = 0.0;
-			// Loop through the kernel
-			for (ky = -offset; ky <= offset; ky++) {
-				for (kx = -offset; kx <= offset; kx++) {
-					pos = (y + ky) * bytesperline + (x + kx) * channels;
-					mean += datasrc[pos];
-				}
-			}
-			mean /= (kernel * kernel);
-			if (mean < 0) mean = 0;
-			if (mean > 255) mean = 255;
-			pos = y * bytesperline + x * channels;
-			datadst[pos] = (unsigned char)mean;
-		}
-	}
-	return 1;
-}
-
-// Comparison function for qsort
+#pragma endregion
+
+#pragma region tp_functions
+
+/**
+ * Função de comparação para qsort, usada para ordenar os valores de um vetor de unsigned char.
+ *
+ * \param a - ponteiro para o primeiro elemento
+ * \param b - ponteiro para o segundo elemento
+ * \return - diferença entre os dois elementos
+ */
 int compare_uchar(const void* a, const void* b) {
 	return (*(unsigned char*)a - *(unsigned char*)b);
 }
 
-int vc_gray_lowpass_median_filter(IVC* src, IVC* dst, int kernel) {
-	unsigned char* datasrc = (unsigned char*)src->data;
-	unsigned char* datadst = (unsigned char*)dst->data;
-	int channels = src->channels;
-	int bytesperline = src->width * src->channels;
-	int width = src->width;
-	int height = src->height;
-	int x, y, kx, ky;
-	long int pos;
-	int offset = (kernel - 1) / 2;
-	int windowSize = kernel * kernel;
-	int mid = windowSize / 2;
-
-	// Error checking
-	if (!src || !dst || !src->data || !dst->data) return 0;
-	if (src->width <= 0 || src->height <= 0) return 0;
-	if (src->width != dst->width || src->height != dst->height) return 0;
-	if (src->channels != 1 || dst->channels != 1) return 0;
-	if (kernel % 2 == 0 || kernel < 1) return 0; // kernel must be odd and >= 1
-
-	// Temporary array to hold kernel values
-	unsigned char* window = (unsigned char*)malloc(sizeof(unsigned char) * windowSize);
-	if (window == NULL) return 0;
-
-	// Apply median filter
-	for (y = offset; y < height - offset; y++) {
-		for (x = offset; x < width - offset; x++) {
-			int count = 0;
-
-			// Collect neighborhood values
-			for (ky = -offset; ky <= offset; ky++) {
-				for (kx = -offset; kx <= offset; kx++) {
-					pos = (y + ky) * bytesperline + (x + kx) * channels;
-					window[count++] = datasrc[pos];
-				}
-			}
-
-			// Sort the window
-			qsort(window, windowSize, sizeof(unsigned char), compare_uchar);
-
-			// Set the median value to the destination
-			pos = y * bytesperline + x * channels;
-			datadst[pos] = window[mid];
-		}
-	}
-
-	free(window);
-	return 1;
-}
-
-int vc_gray_lowpass_gaussian_filter(IVC* src, IVC* dst) {
-	if (!src || !dst || !src->data || !dst->data) return 0;
-	if (src->width <= 0 || src->height <= 0) return 0;
-	if (src->width != dst->width || src->height != dst->height) return 0;
-	if (src->channels != 1 || dst->channels != 1) return 0;
-
-	unsigned char* datasrc = (unsigned char*)src->data;
-	unsigned char* datadst = (unsigned char*)dst->data;
-	int width = src->width;
-	int height = src->height;
-	int channels = src->channels;
-	int bytesperline = width * channels;
-	int offset = 2;
-
-	const float gauss5[5] = { 0.0545f, 0.2442f, 0.4026f, 0.2442f, 0.0545f };
-
-	for (int y = offset; y < height - offset; y++) {
-		for (int x = offset; x < width - offset; x++) {
-			float sum = 0.0f;
-
-			for (int ky = -offset; ky <= offset; ky++) {
-				for (int kx = -offset; kx <= offset; kx++) {
-					float weight = gauss5[ky + offset] * gauss5[kx + offset];
-					int pos = (y + ky) * bytesperline + (x + kx) * channels;
-					sum += datasrc[pos] * weight;
-				}
-			}
-
-			int pos = y * bytesperline + x * channels;
-			if (sum < 0) sum = 0;
-			if (sum > 255) sum = 255;
-			datadst[pos] = (unsigned char)(sum + 0.5f);
-		}
-	}
-
-	return 1;
-}
-
+/**
+ * Converte uma imagem BGR (Blue, Green, Red) para HSV (Hue, Saturation, Value).
+ *
+ * \param src - ponteiro para a imagem de origem (BGR)
+ * \param dst - ponteiro para a imagem de destino (HSV)
+ * \return - 1 em caso de sucesso, 0 em caso de erro
+ */
 int vc_bgr_to_hsv(IVC* src, IVC* dst) {
 
 	unsigned char* datasrc = (unsigned char*)src->data;
@@ -1119,317 +486,64 @@ int vc_bgr_to_hsv(IVC* src, IVC* dst) {
 	return 1;
 }
 
-int vc_hsv_segmentation_to_binary(IVC* src, IVC* dst, int hmin, int hmax, int smin, int smax, int vmin, int vmax) {
-	// Verifica se as imagens de origem e destino são válidas e se os canais são apropriados
-	if (!src || !dst || !src->data || !dst->data) return 0;
-	if (src->width <= 0 || src->height <= 0) return 0;
-	if (src->width != dst->width || src->height != dst->height) return 0;
-	if (src->channels != 3 || dst->channels != 1) return 0;
-
-	unsigned char* datasrc = (unsigned char*)src->data;  // Dados da imagem de origem
-	unsigned char* datadst = (unsigned char*)dst->data;  // Dados da imagem de destino
-
-	// Variáveis para iteração
-	int x, y;
-	long int pos, pos_dst;
-	// Variáveis para armazenar valores de hue, saturation e value
-	//hue [0, 360]º - saturation [0, 100]% - value [0, 100]%
-	int hue, saturation, value;
-
-	// Percorre cada pixel da imagem
-	for (y = 0; y < src->height; y++) {
-		for (x = 0; x < src->width; x++) {
-			pos = y * src->bytesperline + x * src->channels; // Posição na imagem de origem
-			pos_dst = y * dst->bytesperline + x * dst->channels; // Posição na imagem de destino
-
-			// Extrai valores de hue, saturation e value do pixel e converte para faixas utilizáveis
-			hue = (int)(((float)datasrc[pos]) * 360.0f / 255.0f);
-			saturation = (int)(((float)datasrc[pos + 1]) * 100.0f / 255.0f);
-			value = (int)(((float)datasrc[pos + 2]) * 100.0f / 255.0f);
-
-			// Verifica se o pixel atual está dentro dos intervalos especificados para H, S e V
-			if ((hue >= hmin && hue <= hmax) &&
-				(saturation >= smin && saturation <= smax) &&
-				(value >= vmin && value <= vmax)) {
-				datadst[pos_dst] = 255;  // Pixel atende aos critérios, definido como branco
-			}
-			else {
-				datadst[pos_dst] = 0;    // Pixel não atende aos critérios, definido como preto
-			}
-		}
-	}
-	return 1; // Retorna sucesso após a conversão
-}
-
-#pragma endregion
-
-#pragma region tp_functions
-
+/**
+ * Aplica segmentação a uma imagem de HSV para identificar objetos de ouro, prata e cobre.
+ * 
+ * \param src - imagem de entrada em BGR
+ * \param dst - imagem de saída em HSV
+ * \param gold - array com os limites de HSV para o ouro
+ * \param silver - array com os limites de HSV para a prata
+ * \param copper - array com os limites de HSV para o cobre
+ * \return - 1 se a conversão e segmentação foram bem-sucedidas, 0 caso contrário
+ */
 int vc_hsv_to_segmentation_GoldSilverCopper(IVC* src, IVC* dst, int* gold, int* silver, int* copper) {
 
 	unsigned char* datasrc = (unsigned char*)src->data;
-	int bytesperline = src->width * src->channels;  // Source is 3-channel HSV
+	int bytesperline = src->width * src->channels;
 	int width = src->width;
 	int height = src->height;
-	unsigned char* datadst = (unsigned char*)dst->data; // Destination is 1-channel binary
+	unsigned char* datadst = (unsigned char*)dst->data;
 
-	// Error checking
+	// Verifica se as imagens de origem e destino são válidas e têm 3 e 1 canais respetivamente
 	if ((src->width <= 0) || (src->height <= 0) || (src->data == NULL)) return 0;
 	if ((src->width != dst->width) || (src->height != dst->height)) return 0;
 	if ((src->channels != 3) || (dst->channels != 1)) return 0;
 
 	for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++) {
-			int pos = y * bytesperline + x * 3; // HSV has 3 channels
+			int pos = y * bytesperline + x * 3; 
 
-			int h = (int)((float)datasrc[pos] * (360.0f / 255.0f));  // Convert back to 0-360
-			int s = (int)((float)datasrc[pos + 1] * (100.0f / 255.0f));  // Convert back to 0-100
-			int v = (int)((float)datasrc[pos + 2] * (100.0f / 255.0f));  // Convert back to 0-100
+			int h = (int)((float)datasrc[pos] * (360.0f / 255.0f));  // Converter de volta para 0-360
+			int s = (int)((float)datasrc[pos + 1] * (100.0f / 255.0f));  // Converter de volta para 0-100
+			int v = (int)((float)datasrc[pos + 2] * (100.0f / 255.0f));  // Converter de volta para 0-100
 
-			// Check if the pixel is within the HSV threshold ranges and manual correction
-
+			
+			//Verificar se o pixel está dentro dos limites de cor definidos para ouro, prata ou cobre
 			if (h >= gold[0] && h <= gold[1] && s >= gold[2] && s <= gold[3] && v >= gold[4] && v <= gold[5]) {
-				datadst[y * width + x] = 255; // Foreground (White)
+				datadst[y * width + x] = 255; // Foreground (Branco)
 			}
 			else if (h >= silver[0] && h <= silver[1] && s >= silver[2] && s <= silver[3] && v >= silver[4] && v <= silver[5]) {
-				datadst[y * width + x] = 255; // Foreground (White)
+				datadst[y * width + x] = 255; // Foreground (Branco)
 			}
 			else if (h >= copper[0] && h <= copper[1] && s >= copper[2] && s <= copper[3] && v >= copper[4] && v <= copper[5]) {
-				datadst[y * width + x] = 255; // Foreground (White)
+				datadst[y * width + x] = 255; // Foreground (Branco)
 			}
 			else{
-				datadst[y * width + x] = 0;   // Background (Black)
+				datadst[y * width + x] = 0;   // Background (Preto)
 			}
 		}
 	}
 	return 1;
 }
 
-void vc_draw_blob_boundingbox(IVC* image, OVC blob, unsigned char r, unsigned char g, unsigned char b) {
-	int x1 = blob.x;
-	int y1 = blob.y;
-	int x2 = blob.x + blob.width - 1;
-	int y2 = blob.y + blob.height - 1;
-
-	for (int x = x1; x <= x2; x++) {
-		image->data[(y1 * image->width + x) * 3 + 0] = r;
-		image->data[(y1 * image->width + x) * 3 + 1] = g;
-		image->data[(y1 * image->width + x) * 3 + 2] = b;
-
-		image->data[(y2 * image->width + x) * 3 + 0] = r;
-		image->data[(y2 * image->width + x) * 3 + 1] = g;
-		image->data[(y2 * image->width + x) * 3 + 2] = b;
-	}
-
-	for (int y = y1; y <= y2; y++) {
-		image->data[(y * image->width + x1) * 3 + 0] = r;
-		image->data[(y * image->width + x1) * 3 + 1] = g;
-		image->data[(y * image->width + x1) * 3 + 2] = b;
-
-		image->data[(y * image->width + x2) * 3 + 0] = r;
-		image->data[(y * image->width + x2) * 3 + 1] = g;
-		image->data[(y * image->width + x2) * 3 + 2] = b;
-	}
-}
-
-int vc_filter_circular_blobs(IVC* labeled, OVC* blobs, int nblobs, float min_circularity, float max_circularity, int min_area, OVC* circular_blobs) {
-	int count = 0;
-
-	for (int i = 0; i < nblobs; i++) {
-		int label = blobs[i].label;
-		int minx = labeled->width, maxx = 0, miny = labeled->height, maxy = 0, area = 0;
-		int sumx = 0, sumy = 0;
-
-		for (int y = 0; y < labeled->height; y++) {
-			for (int x = 0; x < labeled->width; x++) {
-				int pos = y * labeled->bytesperline + x;
-				if (labeled->data[pos] == label) {
-					area++;
-					sumx += x;
-					sumy += y;
-
-					if (x < minx) minx = x;
-					if (x > maxx) maxx = x;
-					if (y < miny) miny = y;
-					if (y > maxy) maxy = y;
-				}
-			}
-		}
-
-		int w = maxx - minx + 1;
-		int h = maxy - miny + 1;
-		float circularity = (float)area / (w * h);
-
-		if (circularity >= min_circularity && circularity <= max_circularity && area >= min_area) {
-			OVC blob = blobs[i];
-			blob.area = area;
-			blob.x = minx;
-			blob.y = miny;
-			blob.width = w;
-			blob.height = h;
-			blob.xc = sumx / area;
-			blob.yc = sumy / area;
-			circular_blobs[count++] = blob;
-		}
-	}
-
-	return count;
-}
-
-int vc_binary_dilation(IVC* src, IVC* dst, int kernelSize) {
-	unsigned char* datasrc = (unsigned char*)src->data;
-	unsigned char* datadst = (unsigned char*)dst->data;
-	int channels = src->channels;
-	int bytesperline = src->width * src->channels;
-	int width = src->width;
-	int height = src->height;
-	int x, y, kx, ky;
-	long int pos;
-	int offset = (kernelSize - 1) / 2;
-
-	// Error checking
-	if (!src || !dst || !src->data || !dst->data) return 0;
-	if (src->width <= 0 || src->height <= 0) return 0;
-	if (src->width != dst->width || src->height != dst->height) return 0;
-	if (src->channels != 1 || dst->channels != 1) return 0;
-
-	// Perform binary dilation
-	for (y = 0; y < height; y++) {
-		for (x = 0; x < width; x++) {
-			int dilated = 0;
-			// Loop through the kernel
-			for (ky = -offset; ky <= offset && !dilated; ky++) {
-				for (kx = -offset; kx <= offset && !dilated; kx++) {
-					if (((x + kx) >= 0) && ((x + kx) < width) && ((y + ky) >= 0) && ((y + ky) < height)) {
-						pos = (y + ky) * bytesperline + (x + kx) * channels;
-						if (datasrc[pos] == 255) {
-							dilated = 1;
-						}
-					}
-				}
-			}
-			pos = y * bytesperline + x * channels;
-			datadst[pos] = (dilated ? 255 : 0);
-		}
-	}
-	return 1;
-}
-
-int vc_binary_erosion(IVC* src, IVC* dst, int kernelSize) {
-	unsigned char* datasrc = (unsigned char*)src->data;
-	unsigned char* datadst = (unsigned char*)dst->data;
-	int channels = src->channels;
-	int bytesperline = src->width * src->channels;
-	int width = src->width;
-	int height = src->height;
-	int x, y, kx, ky;
-	long int pos;
-	int offset = (kernelSize - 1) / 2;
-
-	// Error checking
-	if (!src || !dst || !src->data || !dst->data) return 0;
-	if (src->width <= 0 || src->height <= 0) return 0;
-	if (src->width != dst->width || src->height != dst->height) return 0;
-	if (src->channels != 1 || dst->channels != 1) return 0;
-
-	// Perform binary erosion
-	for (y = 0; y < height; y++) {
-		for (x = 0; x < width; x++) {
-			int eroded = 1;
-			// Loop through the kernel
-			for (ky = -offset; ky <= offset && eroded; ky++) {
-				for (kx = -offset; kx <= offset && eroded; kx++) {
-					if (((x + kx) >= 0) && ((x + kx) < width) && ((y + ky) >= 0) && ((y + ky) < height)) {
-						pos = (y + ky) * bytesperline + (x + kx) * channels;
-						if (datasrc[pos] == 0) {
-							eroded = 0;
-						}
-					}
-					else {
-						eroded = 0;
-					}
-				}
-			}
-			pos = y * bytesperline + x * channels;
-			datadst[pos] = (eroded ? 255 : 0);
-		}
-	}
-	return 1;
-}
-
-int vc_gray_to_binary(IVC* src, IVC* dst, int threshold) {
-	unsigned char* datasrc = (unsigned char*)src->data;
-	unsigned char* datadst = (unsigned char*)dst->data;
-	int width = src->width;
-	int height = src->height;
-	int x, y;
-	long int pos;
-	// Error checking
-	if (!src || !dst || !src->data || !dst->data) return 0;
-	if (src->width <= 0 || src->height <= 0) return 0;
-	if (src->width != dst->width || src->height != dst->height) return 0;
-	if (src->channels != 1 || dst->channels != 1) return 0;
-	for (y = 0; y < height; y++) {
-		for (x = 0; x < width; x++) {
-			pos = y * width + x;  // Position in grayscale image
-			unsigned char gray = datasrc[pos];  // Store grayscale value
-			// Thresholding
-			if (gray < threshold) {
-				datadst[y * width + x] = 255;  // White
-			}
-			else {
-				datadst[y * width + x] = 0;  // Black
-			}
-		}
-	}
-	return 1;
-}
-
-int vc_bgr_to_binary_with_threshold(IVC* src, IVC* dst, int threshold) {
-	unsigned char* datasrc = (unsigned char*)src->data;
-	unsigned char* datadst = (unsigned char*)dst->data;
-	int width = src->width;
-	int height = src->height;
-	int x, y;
-	long int pos;
-	int bytesperline_src = src->width * src->channels;
-	int bytesperline_dst = dst->width * dst->channels;
-	int channels_src = src->channels;
-	int channels_dst = dst->channels;
-	long int pos_src, pos_dst;
-	float rf, gf, bf;
-	// Error checking
-	if (!src || !dst || !src->data || !dst->data) return 0;
-	if (src->width <= 0 || src->height <= 0) return 0;
-	if (src->width != dst->width || src->height != dst->height) return 0;
-	if (src->channels != 3 || dst->channels != 1) return 0;
-
-	if ((src->width <= 0) || (src->height <= 0) || (src->data == NULL)) return 0;
-	if ((src->width != dst->width) || (src->height != dst->height)) return 0;
-	if ((src->channels != 3) || (dst->channels != 1)) return 0;
-
-	for (y = 0; y < height; y++) {
-		for (x = 0; x < width; x++) {
-
-			pos_src = y * bytesperline_src + x * channels_src;
-			pos_dst = y * bytesperline_dst + x * channels_dst;
-
-			rf = (float)datasrc[pos_src];
-			gf = (float)datasrc[pos_src + 1];
-			bf = (float)datasrc[pos_src + 2];
-
-			datadst[pos_dst] = (unsigned char)((rf * 0.2999) + (gf * 0.587) + (bf * 0.114));
-			if (datadst[pos_dst] < threshold) {
-				datadst[pos_dst] = 255;  // White
-			}
-			else {
-				datadst[pos_dst] = 0;  // Black
-			}
-		}
-	}
-	return 1;
-}
-
+/**
+ * Realiza a rotulagem de blobs binários em uma imagem.
+ *
+ * \param src - imagem de entrada (binária)
+ * \param dst - imagem de saída (rotulada)
+ * \param nlabels - ponteiro para armazenar o número de rótulos encontrados
+ * \return - ponteiro para a lista de blobs rotulados
+ */
 OVC* vc_binary_blob_labelling(IVC* src, IVC* dst, int* nlabels) {
 	unsigned char* datasrc = src->data;
 	unsigned char* datadst = dst->data;
@@ -1438,16 +552,20 @@ OVC* vc_binary_blob_labelling(IVC* src, IVC* dst, int* nlabels) {
 	int size = bytesperline * height;
 	int label = 1, i, x, y, pos;
 
+	// Verifica se as imagens de origem e destino são válidas e têm 1 canal
 	if (!src || !dst || !datasrc || !datadst || width <= 0 || height <= 0 || channels != 1 ||
 		src->width != dst->width || src->height != dst->height || src->channels != dst->channels) return NULL;
 
+	// Aloca memória para a tabela de rótulos e inicializa
 	int maxlabels = width * height;
 	int* labeltable = (int*)malloc(sizeof(int) * maxlabels);
 	int* newlabels = (int*)calloc(maxlabels, sizeof(int));
 	if (!labeltable || !newlabels) return NULL;
 
+	// Inicializa a imagem de saída como uma imagem binária
 	for (i = 0; i < size; i++) datadst[i] = (datasrc[i] != 0) ? 255 : 0;
 
+	// Limpa as bordas da imagem de saída
 	for (x = 0; x < width; x++) {
 		datadst[x] = 0;
 		datadst[(height - 1) * bytesperline + x] = 0;
@@ -1457,8 +575,10 @@ OVC* vc_binary_blob_labelling(IVC* src, IVC* dst, int* nlabels) {
 		datadst[y * bytesperline + (width - 1)] = 0;
 	}
 
+	// Inicializa a tabela de rótulos
 	for (i = 0; i < maxlabels; i++) labeltable[i] = i;
 
+	// Rotulagem de blobs
 	for (y = 1; y < height - 1; y++) {
 		for (x = 1; x < width - 1; x++) {
 			pos = y * bytesperline + x;
@@ -1470,10 +590,12 @@ OVC* vc_binary_blob_labelling(IVC* src, IVC* dst, int* nlabels) {
 				int neighbors[4] = { A, B, C, D };
 				int min = 0xFFFF;
 
+				// Ordena os vizinhos
 				for (i = 0; i < 4; i++) {
 					if (neighbors[i] > 0 && neighbors[i] < min) min = neighbors[i];
 				}
 
+				// Se não houver vizinhos rotulados, atribui um novo rótulo
 				if (min == 0xFFFF) {
 					datadst[pos] = label;
 					label++;
@@ -1493,7 +615,7 @@ OVC* vc_binary_blob_labelling(IVC* src, IVC* dst, int* nlabels) {
 			}
 		}
 	}
-
+	// Corrige os rótulos
 	for (y = 1; y < height - 1; y++) {
 		for (x = 1; x < width - 1; x++) {
 			pos = y * bytesperline + x;
@@ -1507,7 +629,7 @@ OVC* vc_binary_blob_labelling(IVC* src, IVC* dst, int* nlabels) {
 			}
 		}
 	}
-
+	// Reorganiza os rótulos
 	*nlabels = 0;
 	for (i = 1; i < label; i++) {
 		if (labeltable[i] == i) {
@@ -1515,6 +637,7 @@ OVC* vc_binary_blob_labelling(IVC* src, IVC* dst, int* nlabels) {
 		}
 	}
 
+	// Atualiza os rótulos na imagem de saída
 	for (y = 1; y < height - 1; y++) {
 		for (x = 1; x < width - 1; x++) {
 			pos = y * bytesperline + x;
@@ -1523,17 +646,17 @@ OVC* vc_binary_blob_labelling(IVC* src, IVC* dst, int* nlabels) {
 		}
 	}
 
+	// Aloca memória para os blobs
 	OVC* blobs = (OVC*)calloc(*nlabels, sizeof(OVC));
 	if (!blobs) {
 		free(labeltable);
 		free(newlabels);
 		return NULL;
 	}
-
-	// Initialize accumulators
 	int* sum_x = (int*)calloc(*nlabels, sizeof(int));
 	int* sum_y = (int*)calloc(*nlabels, sizeof(int));
 
+	// Inicializa os blobs
 	for (i = 0; i < *nlabels; i++) {
 		blobs[i].label = i + 1;
 		blobs[i].area = 0;
@@ -1544,6 +667,7 @@ OVC* vc_binary_blob_labelling(IVC* src, IVC* dst, int* nlabels) {
 		blobs[i].height = 0;
 	}
 
+	// Calcula a área, perímetro e coordenadas dos blobs
 	for (y = 1; y < height - 1; y++) {
 		for (x = 1; x < width - 1; x++) {
 			pos = y * bytesperline + x;
@@ -1555,12 +679,13 @@ OVC* vc_binary_blob_labelling(IVC* src, IVC* dst, int* nlabels) {
 				sum_x[idx] += x;
 				sum_y[idx] += y;
 
+				// Atualiza as coordenadas do blob
 				if (x < blob->x) blob->x = x;
 				if (y < blob->y) blob->y = y;
 				if (x > blob->x + blob->width) blob->width = x - blob->x;
 				if (y > blob->y + blob->height) blob->height = y - blob->y;
 
-				// Perimeter check (4-neighbor)
+				//Verificar perimetro
 				if (datadst[(y - 1) * bytesperline + x] == 0 ||
 					datadst[y * bytesperline + (x - 1)] == 0 ||
 					datadst[y * bytesperline + (x + 1)] == 0 ||
@@ -1571,6 +696,7 @@ OVC* vc_binary_blob_labelling(IVC* src, IVC* dst, int* nlabels) {
 		}
 	}
 
+	// Corrige a largura e altura dos blobs
 	for (i = 0; i < *nlabels; i++) {
 		if (blobs[i].area > 0) {
 			blobs[i].xc = sum_x[i] / blobs[i].area;
@@ -1580,6 +706,7 @@ OVC* vc_binary_blob_labelling(IVC* src, IVC* dst, int* nlabels) {
 		}
 	}
 
+	// Liberta memória
 	free(labeltable);
 	free(newlabels);
 	free(sum_x);
@@ -1587,111 +714,439 @@ OVC* vc_binary_blob_labelling(IVC* src, IVC* dst, int* nlabels) {
 	return blobs;
 }
 
-int vc_binary_blob_info(IVC* src, OVC* blobs, int nblobs) {
-	unsigned char* data = (unsigned char*)src->data;
-	int width = src->width;
-	int height = src->height;
-	int bytesperline = src->bytesperline;
-	int channels = src->channels;
-	int x, y, i;
-	long int pos;
-	int xmin, ymin, xmax, ymax;
-	long int sumx, sumy;
+/**
+ * Desenha um retângulo em uma imagem, representando um blob rotulado.
+ *
+ * \param frame - ponteiro para a imagem onde o retângulo será desenhado
+ * \param width - largura da imagem
+ * \param height - altura da imagem
+ * \param blobs - ponteiro para a lista de blobs rotulados
+ * \param i - índice do blob a ser desenhado
+ */
+void draw_rectangle(unsigned char* frame, int width, int height, OVC* blobs, int i) {
+	// Define a cor do retângulo (vermelho em BGR)
+	unsigned char red[3] = { 0, 0, 255 };
 
-	// Safety checks
-	if ((src == NULL) || (src->data == NULL) || (blobs == NULL)) return 0;
-	if ((width <= 0) || (height <= 0) || (channels != 1)) return 0;
+	// Coordenadas e dimensões do retângulo
+	int x = blobs[i].x;
+	int y = blobs[i].y;
+	int rect_width = blobs[i].width;
+	int rect_height = blobs[i].height;
 
-	for (i = 0; i < nblobs; i++) {
-		xmin = width - 1;
-		ymin = height - 1;
-		xmax = 0;
-		ymax = 0;
+	// Desenha as linhas superior e inferior do retângulo (2-pixel thickness)
+	for (int j = x - 1; j < x + rect_width + 1; j++) {
+		if (j >= 0 && j < width) {
+			if (y - 1 >= 0 && y - 1 < height) {
+				frame[((y - 1) * width + j) * 3 + 0] = red[0];
+				frame[((y - 1) * width + j) * 3 + 1] = red[1];
+				frame[((y - 1) * width + j) * 3 + 2] = red[2];
+			}
+			if (y >= 0 && y < height) {
+				frame[(y * width + j) * 3 + 0] = red[0];
+				frame[(y * width + j) * 3 + 1] = red[1];
+				frame[(y * width + j) * 3 + 2] = red[2];
+			}
+			if (y + rect_height >= 0 && y + rect_height < height) {
+				frame[((y + rect_height) * width + j) * 3 + 0] = red[0];
+				frame[((y + rect_height) * width + j) * 3 + 1] = red[1];
+				frame[((y + rect_height) * width + j) * 3 + 2] = red[2];
+			}
+			if (y + rect_height + 1 >= 0 && y + rect_height + 1 < height) {
+				frame[((y + rect_height + 1) * width + j) * 3 + 0] = red[0];
+				frame[((y + rect_height + 1) * width + j) * 3 + 1] = red[1];
+				frame[((y + rect_height + 1) * width + j) * 3 + 2] = red[2];
+			}
+		}
+	}
 
-		sumx = 0;
-		sumy = 0;
+	// Desenha as linhas laterais do retângulo (2-pixel thickness)
+	for (int j = y - 1; j < y + rect_height + 1; j++) {
+		if (j >= 0 && j < height) {
+			if (x - 1 >= 0 && x - 1 < width) {
+				frame[(j * width + x - 1) * 3 + 0] = red[0];
+				frame[(j * width + x - 1) * 3 + 1] = red[1];
+				frame[(j * width + x - 1) * 3 + 2] = red[2];
+			}
+			if (x >= 0 && x < width) {
+				frame[(j * width + x) * 3 + 0] = red[0];
+				frame[(j * width + x) * 3 + 1] = red[1];
+				frame[(j * width + x) * 3 + 2] = red[2];
+			}
+			if (x + rect_width >= 0 && x + rect_width < width) {
+				frame[(j * width + (x + rect_width)) * 3 + 0] = red[0];
+				frame[(j * width + (x + rect_width)) * 3 + 1] = red[1];
+				frame[(j * width + (x + rect_width)) * 3 + 2] = red[2];
+			}
+			if (x + rect_width + 1 >= 0 && x + rect_width + 1 < width) {
+				frame[(j * width + (x + rect_width + 1)) * 3 + 0] = red[0];
+				frame[(j * width + (x + rect_width + 1)) * 3 + 1] = red[1];
+				frame[(j * width + (x + rect_width + 1)) * 3 + 2] = red[2];
+			}
+		}
+	}
 
-		blobs[i].area = 0;
-		blobs[i].perimeter = 0;  // ← Fix: initialize perimeter to 0
+	// Desenha uma cruz no centro do retângulo, 6 pixels de extenção para cada direção
+	int cx = x + rect_width / 2;
+	int cy = y + rect_height / 2;
+	int cross_len = 6;
 
-		for (y = 1; y < height - 1; y++) {
-			for (x = 1; x < width - 1; x++) {
-				pos = y * bytesperline + x * channels;
+	// Desenha a cruz
+	for (int dx = -cross_len; dx <= cross_len; dx++) {
+		int px = cx + dx;
+		if (px >= 0 && px < width && cy >= 0 && cy < height) {
+			frame[(cy * width + px) * 3 + 0] = red[0];
+			frame[(cy * width + px) * 3 + 1] = red[1];
+			frame[(cy * width + px) * 3 + 2] = red[2];
+		}
+	}
 
-				if (data[pos] == blobs[i].label) {
-					// Area
-					blobs[i].area++;
+	// Desenha a cruz
+	for (int dy = -cross_len; dy <= cross_len; dy++) {
+		int py = cy + dy;
+		if (py >= 0 && py < height && cx >= 0 && cx < width) {
+			frame[(py * width + cx) * 3 + 0] = red[0];
+			frame[(py * width + cx) * 3 + 1] = red[1];
+			frame[(py * width + cx) * 3 + 2] = red[2];
+		}
+	}
+}
 
-					// Center of mass sums
-					sumx += x;
-					sumy += y;
+/**
+ * Calcula a distância entre dois pontos (x1, y1) e (x2, y2).
+ *
+ * \param x1 - coordenada x do primeiro ponto
+ * \param y1 - coordenada y do primeiro ponto
+ * \param x2 - coordenada x do segundo ponto
+ * \param y2 - coordenada y do segundo ponto
+ * \return - distância entre os dois pontos
+ */
+float distance(int x1, int y1, int x2, int y2) {
+	return sqrtf((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+}
 
-					// Bounding box
-					if (x < xmin) xmin = x;
-					if (y < ymin) ymin = y;
-					if (x > xmax) xmax = x;
-					if (y > ymax) ymax = y;
+/**
+ * Verifica se um blob é circular com base em sua circularidade, razão de aspecto e área.
+ *
+ * \param blob - estrutura OVC representando o blob
+ * \param minCircularity - valor mínimo de circularidade
+ * \param minAspectRatio - razão de aspecto mínima
+ * \param MaxAspectRacio - razão de aspecto máxima
+ * \param minArea - área mínima
+ * \param maxArea - área máxima
+ * \return - 1 se o blob for circular, 0 caso contrário
+ */
+bool isValidCircularBlob(OVC blob, float minCircularity, float minAspectRatio, float MaxAspectRacio, int minArea, int maxArea) {
+	if (blob.perimeter <= 0) return false;
 
-					// Perimeter check (4-connectivity)
-					if (data[pos - channels] != blobs[i].label ||
-						data[pos + channels] != blobs[i].label ||
-						data[pos - bytesperline] != blobs[i].label ||
-						data[pos + bytesperline] != blobs[i].label ||
-						data[pos - bytesperline - channels] != blobs[i].label ||
-						data[pos - bytesperline + channels] != blobs[i].label ||
-						data[pos + bytesperline - channels] != blobs[i].label ||
-						data[pos + bytesperline + channels] != blobs[i].label)
-					{
-						blobs[i].perimeter++;
+	// Calcular a circularidade
+	float circularity = (4.0f * 3.14159265f * blob.area) / (blob.perimeter * blob.perimeter);
+	if (circularity < minCircularity) return false;
+
+	// Calcular a razão de aspecto
+	float aspect_ratio = (float)blob.width / blob.height;
+	if (aspect_ratio > MaxAspectRacio || aspect_ratio < minAspectRatio) return false;
+
+	// Verificar a área
+	if (blob.area < minArea || blob.area > maxArea) return false;
+
+	return true;
+}
+
+/**
+ * Identifica o metal de uma moeda com base em sua cor HSV.
+ *
+ * \param hsv_image - imagem HSV da moeda
+ * \param blob - estrutura OVC representando o blob da moeda
+ * \param gold - array com os limites de HSV para o ouro
+ * \param silver - array com os limites de HSV para a prata
+ * \param copper - array com os limites de HSV para o cobre
+ * \param id - ID do blob
+ * \return - valor representando o tipo de metal (0.05 = cobre, 0.20 = ouro, 1.0 = prata)
+ */
+float IdentifyCoinMetal(IVC* hsv_image, OVC blob, int* gold, int* silver, int* copper, int id) {
+	// Se a imagem HSV e o blob são inválidos ou vazios, retorna 0.0f
+	if (blob.width <= 0 || blob.height <= 0 || blob.area <= 0) return 0.0f;
+
+	// Amostra de uma região central do blob
+	int sample_width = blob.width / 3;
+	int sample_height = blob.height / 3;
+	int start_x = blob.x + (blob.width - sample_width) / 2;
+	int start_y = blob.y + (blob.height - sample_height) / 2;
+
+	// Valores de cor HSV acumulados
+	int h_total = 0, s_total = 0, v_total = 0;
+	int gold_pixels = 0, silver_pixels = 0, copper_pixels = 0;
+	int total_pixels = 0;
+
+	// Verificar pixeis da amostra
+	for (int y = start_y; y < start_y + sample_height; y++) {
+		for (int x = start_x; x < start_x + sample_width; x++) {
+			
+			// Verifica se o pixel está dentro dos limites da imagem
+			if (x < 0 || x >= hsv_image->width || y < 0 || y >= hsv_image->height) continue;
+
+			//Calcular posição do pixel na imagem HSV
+			int offset = (y * hsv_image->width + x) * 3;
+
+			// Obter os valores HSV do pixel
+			int h = hsv_image->data[offset];
+			int s = hsv_image->data[offset + 1];
+			int v = hsv_image->data[offset + 2];
+
+			// Normalizar os valores HSV
+			float h_norm = (float)h * (360.0f / 255.0f);
+			float s_norm = (float)s * (100.0f / 255.0f);
+			float v_norm = (float)v * (100.0f / 255.0f);
+
+			// Acumular os valores HSV
+			h_total += h;
+			s_total += s;
+			v_total += v;
+
+			// Identificação mais precisa com lógica de prioridade
+			// Primeiro verificamos se é prata, pois é mais distintiva
+			if (h_norm >= silver[0] && h_norm <= silver[1] &&
+				s_norm >= silver[2] && s_norm <= silver[3] &&
+				v_norm >= silver[4] && v_norm <= silver[5]) {
+				silver_pixels++;
+			}
+			// Depois verificamos cobre, dando-lhe prioridade sobre ouro em caso de região de sobreposição
+			else if (h_norm >= copper[0] && h_norm <= copper[1] &&
+				s_norm >= copper[2] && s_norm <= copper[3] &&
+				v_norm >= copper[4] && v_norm <= copper[5]) {
+				// Verificação extra para diferenciação entre cobre e ouro nas regiões de sobreposição
+				if (h_norm <= 35) {  // Se o matiz está mais próximo do vermelho, é provavelmente cobre
+					copper_pixels++;
+				}
+				else {
+					gold_pixels++;  // Senão, consideramos ouro
+				}
+			}
+			// Se não for nenhum dos casos acima, mas estiver na faixa de ouro, consideramos ouro
+			else if (h_norm >= gold[0] && h_norm <= gold[1] &&
+				s_norm >= gold[2] && s_norm <= gold[3] &&
+				v_norm >= gold[4] && v_norm <= gold[5]) {
+				gold_pixels++;
+			}
+
+			total_pixels++;
+		}
+	}
+
+	// Se não houver pixels válidos, retorna 0.0f
+	if (total_pixels == 0) return 0.0f;
+
+	// Calcular porcentagens de cada metal
+	float gold_percent = (float)gold_pixels / total_pixels;
+	float silver_percent = (float)silver_pixels / total_pixels;
+	float copper_percent = (float)copper_pixels / total_pixels;
+
+	// Definir um limiar para determinar a presença de cada metal
+	const float THRESHOLD = 0.1f;
+
+	// Lógica adicional para resolver sobreposições
+	// Se estiver na região de sobreposição entre cobre e ouro, usamos um critério adicional
+	if (copper_percent > 0.2f && gold_percent > 0.2f) {
+		// Calcular a média do matiz (hue) dos pixels
+		float h_mean = ((float)h_total / total_pixels) * (360.0f / 255.0f);
+
+		// Se o matiz médio estiver mais próximo do vermelho, provavelmente é cobre
+		if (h_mean < 35) {
+			return 0.05f; // Copper
+		}
+		else {
+			return 0.20f; // Gold
+		}
+	}
+	// Se a porcentagem de um metal for maior que o limiar e maior que os outros, retorna o valor correspondente
+	if (gold_percent > THRESHOLD && gold_percent > silver_percent && gold_percent > copper_percent) {
+		return 0.20f; // Õuro
+	}
+	else if (silver_percent > THRESHOLD && silver_percent > gold_percent && silver_percent > copper_percent) {
+		return 1.0f; // Prata
+	}
+	else if (copper_percent > THRESHOLD && copper_percent > gold_percent && copper_percent > silver_percent) {
+		return 0.05f; // Cobre
+	}
+
+	// Se não houver uma classificação clara, use o valor HSV médio como fallback
+	float h_mean = (float)h_total / total_pixels * (360.0f / 255.0f);
+	float s_mean = (float)s_total / total_pixels * (100.0f / 255.0f);
+	float v_mean = (float)v_total / total_pixels * (100.0f / 255.0f);
+
+	// Mais um critério para resolver sobreposições: a relação entre saturação e valor
+	if (h_mean >= 20 && h_mean <= 40) {  // Região de sobreposição no matiz
+		if (s_mean > 50) {  // Cobre tende a ter saturação mais alta
+			return 0.05f; // Copper
+		}
+		else {
+			return 0.20f; // Gold
+		}
+	}
+
+	// Verificação padrão de fallback
+	if (h_mean >= gold[0] && h_mean <= gold[1] &&
+		s_mean >= gold[2] && s_mean <= gold[3] &&
+		v_mean >= gold[4] && v_mean <= gold[5]) {
+		return 0.20f; // Ouro
+	}
+	else if (h_mean >= silver[0] && h_mean <= silver[1] &&
+		s_mean >= silver[2] && s_mean <= silver[3] &&
+		v_mean >= silver[4] && v_mean <= silver[5]) {
+		return 1.0f; // Prata
+	}
+	else if (h_mean >= copper[0] && h_mean <= copper[1] &&
+		s_mean >= copper[2] && s_mean <= copper[3] &&
+		v_mean >= copper[4] && v_mean <= copper[5]) {
+		return 0.05f; // Cobre
+	}
+
+	return 0.0f; // Se o metal for desconhecido retorna 0.0f
+}
+
+/**
+ * Calcula o valor de uma moeda com base em sua área e metal.
+ *
+ * \param blob - estrutura OVC representando a moeda
+ * \param hsv_image - imagem HSV da moeda
+ * \param gold - array com os limites de HSV para o ouro
+ * \param silver - array com os limites de HSV para a prata
+ * \param copper - array com os limites de HSV para o cobre
+ * \param areas - array com os limites de área para diferentes moedas
+ * \param id - ID do blob
+ * \return - valor da moeda (em euros)
+ */
+float GetCoinValue(OVC blob, IVC* hsv_image, int* gold, int* silver, int* copper, int* areas, int id) {
+	// Verifica área de cada blob
+	if (blob.area > areas[0] && blob.area < areas[1]) return 2.00f;
+	if (blob.area > areas[2] && blob.area < areas[3]) return 0.50f;
+	if (blob.area > areas[4] && blob.area < areas[5]) return IdentifyCoinMetal(hsv_image, blob, gold, silver, copper, id);
+	if (blob.area > areas[6] && blob.area < areas[7]) return 0.10f;
+	if (blob.area > areas[8] && blob.area < areas[9]) return 0.02f;
+	if (blob.area > areas[10] && blob.area < areas[11]) return 0.01f;
+	//Se a moeda não for reconhecida, retorna 0.0f
+	return 0.0f;
+}
+
+/**
+ * Exibe informações sobre uma moeda rastreada.
+ *
+ * \param coin - estrutura TrackedCoin representando a moeda
+ */
+void DisplayCoinInfo(TrackedCoin coin) {
+	printf("Moeda nº%02d tem uma área de %d píxeis, perímetro de %d píxeis.\nTem o valor de %.2f€\n\n",
+		coin.id, coin.area, coin.perimeter, coin.value);	
+}
+
+/**
+ * Atualiza as informações de uma moeda rastreada.
+ *
+ * \param coin - ponteiro para a estrutura TrackedCoin representando a moeda
+ * \param cx - coordenada x do centro da moeda
+ * \param cy - coordenada y do centro da moeda
+ */
+void UpdateCoinFlags(TrackedCoin* coin, int cx, int cy) {
+	coin->cx = cx;
+	coin->cy = cy;
+	coin->frames_seen++;
+	coin->frames_missing = 0;
+}
+
+/**
+ * Tenta adicionar uma nova moeda à lista de moedas rastreadas.
+ *
+ * \param trackedCoins - array de moedas rastreadas
+ * \param coin_id_counter - contador de IDs de moedas
+ * \param cx - coordenada x do centro da moeda
+ * \param cy - coordenada y do centro da moeda
+ * \param blob - estrutura OVC representando a moeda
+ * \param unique_ids_seen - array de IDs únicos vistos
+ * \param total_unique_coins - ponteiro para o número total de moedas únicas
+ * \param total_value - ponteiro para o valor total das moedas
+ * \param image_hsv - imagem HSV da moeda
+ * \param hsvGold - limites HSV para o ouro
+ * \param hsvSilver - limites HSV para a prata
+ * \param hsvCopper - limites HSV para o cobre
+ * \param coinAreas - array com os limites de área para diferentes moedas
+ */
+void TryAddNewCoin(TrackedCoin* trackedCoins, int* coin_id_counter, int cx, int cy, OVC blob, int* unique_ids_seen, 
+int* total_unique_coins, float* total_value, IVC image_hsv, int* hsvGold, int* hsvSilver, int* hsvCopper, int* coinAreas) {
+	// Verifica se a moeda já está ativa, se não, tenta adicionar uma nova moeda
+	for (int j = 0; j < MAX_TRACKED_COINS; j++) {
+		if (!trackedCoins[j].active) {
+			trackedCoins[j].id = (*coin_id_counter)++;
+			trackedCoins[j].cx = cx;
+			trackedCoins[j].cy = cy;
+			trackedCoins[j].perimeter = blob.perimeter;
+			trackedCoins[j].area = blob.area;
+			trackedCoins[j].frames_seen = 1;
+			trackedCoins[j].frames_missing = 0;
+			trackedCoins[j].active = 1;
+			trackedCoins[j].value = GetCoinValue(blob, &image_hsv, hsvGold, hsvSilver, hsvCopper, coinAreas, trackedCoins[j].id);
+
+			// Verifica se a moeda já foi contada
+			int id = trackedCoins[j].id;
+			int already_counted = 0;
+			for (int k = 0; k < *total_unique_coins; k++) {
+				if (unique_ids_seen[k] == id) {
+					already_counted = 1;
+					break;
+				}
+			}
+
+			// Se a moeda não foi contada, adiciona ao array de IDs únicos
+			if (!already_counted) {
+				unique_ids_seen[(*total_unique_coins)++] = id;
+				*total_value += trackedCoins[j].value;
+				DisplayCoinInfo(trackedCoins[j]);
+			}
+			break;
+		}
+	}
+}
+
+/**
+ * Atualiza o status das moedas rastreadas, marcando-as como inativas se não forem vistas por um certo número de quadros.
+ *
+ * \param trackedCoins - array de moedas rastreadas
+ * \param max_tracked_coins - número máximo de moedas rastreadas
+ * \param max_missing_frames - número máximo de frames sem verificação
+ */
+void UpdateTrackedCoinStatus(TrackedCoin* trackedCoins, int max_tracked_coins, int max_missing_frames) {
+	for (int j = 0; j < max_tracked_coins; j++) {
+		if (trackedCoins[j].active) {
+			trackedCoins[j].frames_missing++;
+			if (trackedCoins[j].frames_missing > max_missing_frames) {
+				trackedCoins[j].active = 0;
+			}
+		}
+	}
+}
+
+void SaveUniqueTrackedCoins(TrackedCoin* source, TrackedCoin* destination, int maxCoins) {
+	for (int i = 0; i < maxCoins; i++) {
+		if (source[i].active) {
+			bool alreadySaved = false;
+
+			// Verifica se a moeda já está guardada
+			for (int j = 0; j < maxCoins; j++) {
+				if (destination[j].active && destination[j].id == source[i].id) {
+					alreadySaved = true;
+					break;
+				}
+			}
+
+			// Se a moeda não estiver guardada, adiciona-a à lista de moedas guardadas
+			if (!alreadySaved) {
+				for (int j = 0; j < maxCoins; j++) {
+					if (!destination[j].active) {
+						destination[j] = source[i];
+						break;
 					}
-
 				}
 			}
 		}
-
-		// Final bounding box values
-		blobs[i].x = xmin;
-		blobs[i].y = ymin;
-		blobs[i].width = (xmax - xmin) + 1;
-		blobs[i].height = (ymax - ymin) + 1;
-
-		// Center of mass (avoid division by zero)
-		blobs[i].xc = (blobs[i].area > 0) ? sumx / blobs[i].area : 0;
-		blobs[i].yc = (blobs[i].area > 0) ? sumy / blobs[i].area : 0;
-	}
-
-	return 1;
-}
-
-void draw_rectangle(IVC* image, int x, int y, int width, int height, int r, int g, int b) {
-	int i;
-
-	for (i = x; i < x + width; i++) {
-		// Top line
-		image->data[(y * image->width + i) * 3 + 0] = r;
-		image->data[(y * image->width + i) * 3 + 1] = g;
-		image->data[(y * image->width + i) * 3 + 2] = b;
-
-		// Bottom line
-		image->data[((y + height) * image->width + i) * 3 + 0] = r;
-		image->data[((y + height) * image->width + i) * 3 + 1] = g;
-		image->data[((y + height) * image->width + i) * 3 + 2] = b;
-	}
-
-	for (i = y; i < y + height; i++) {
-		// Left line
-		image->data[(i * image->width + x) * 3 + 0] = r;
-		image->data[(i * image->width + x) * 3 + 1] = g;
-		image->data[(i * image->width + x) * 3 + 2] = b;
-
-		// Right line
-		image->data[(i * image->width + (x + width)) * 3 + 0] = r;
-		image->data[(i * image->width + (x + width)) * 3 + 1] = g;
-		image->data[(i * image->width + (x + width)) * 3 + 2] = b;
 	}
 }
 
-//float distance(int x1, int y1, int x2, int y2) {
-//	return sqrtf((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
-//}
 #pragma endregion

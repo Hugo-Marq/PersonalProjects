@@ -1,203 +1,14 @@
-﻿//#include <iostream>
-//#include <string>
-//#include <chrono>
-//#include <opencv2\opencv.hpp>
-//#include <opencv2\core.hpp>
-//#include <opencv2\highgui.hpp>
-//#include <opencv2\videoio.hpp>
-//
-//extern "C" {
-//#include "vc.h"
-//#include <math.h>
-//}
-//
-//#define MAX_BLOBS 1000
-//#define MAX_TRACKED_COINS 100
-//
-//void vc_timer(void) {
-//	static bool running = false;
-//	static std::chrono::steady_clock::time_point previousTime = std::chrono::steady_clock::now();
-//
-//	if (!running) {
-//		running = true;
-//	}
-//	else {
-//		std::chrono::steady_clock::time_point currentTime = std::chrono::steady_clock::now();
-//		std::chrono::steady_clock::duration elapsedTime = currentTime - previousTime;
-//
-//		// Tempo em segundos.
-//		std::chrono::duration<double> time_span = std::chrono::duration_cast<std::chrono::duration<double>>(elapsedTime);
-//		double nseconds = time_span.count();
-//
-//		std::cout << "Tempo decorrido: " << nseconds << "segundos" << std::endl;
-//		std::cout << "Pressione qualquer tecla para continuar...\n";
-//		std::cin.get();
-//	}
-//}
-//
-//
-//int main(void) {
-//	// Vídeo
-//	char videofile[20] = "video2.mp4";
-//	cv::VideoCapture capture;
-//	struct
-//	{
-//		int width, height;
-//		int ntotalframes;
-//		int fps;
-//		int nframe;
-//	} video;
-//	// Outros
-//	std::string str;
-//	int key = 0;
-//
-//	capture.open(videofile);
-//
-//	//Verificar se video foi aberto
-//	if (!capture.isOpened())
-//	{
-//		std::cerr << "Erro ao abrir o ficheiro de v�deo!\n";
-//		return 1;
-//	}
-//
-//	//Numero de frames, fps e resolução do vídeo
-//	video.ntotalframes = (int)capture.get(cv::CAP_PROP_FRAME_COUNT);
-//	video.fps = (int)capture.get(cv::CAP_PROP_FPS);
-//	video.width = (int)capture.get(cv::CAP_PROP_FRAME_WIDTH);
-//	video.height = (int)capture.get(cv::CAP_PROP_FRAME_HEIGHT);
-//
-//	//janela para apresentar o vídeo
-//	cv::namedWindow("VC - VIDEO", cv::WINDOW_NORMAL);
-//	cv::namedWindow("VC - VIDEO2", cv::WINDOW_NORMAL);
-//
-//	// Resize the window manually if needed
-//	cv::resizeWindow("VC - VIDEO", 640, 480);
-//	cv::resizeWindow("VC - VIDEO2", 640, 480);
-//
-//	//Iniciar timer
-//	vc_timer();
-//	
-//	cv::Mat frame, dst;
-//
-//	
-//	//{h_min, h_max, s_min, s_max, v_min, v_max }
-//	int hsvGold[6] = { 29, 90, 20, 100, 12, 60 };
-//	int hsvSilver[6] = { 48, 180, 3, 23, 14, 41 };
-//	int hsvCopper[6] = { 18, 40, 40, 80, 15, 45 };
-//
-//
-//	// Criar imagens IVC
-//	IVC* original_bgr = vc_image_new(video.width, video.height, 3, 255);
-//	IVC* image_bgr = vc_image_new(original_bgr->width, original_bgr->height, original_bgr->channels, original_bgr->levels);
-//	IVC* image_hsv = vc_image_new(original_bgr->width, original_bgr->height, original_bgr->channels, original_bgr->levels);
-//	IVC* image_thresh = vc_image_new(original_bgr->width, original_bgr->height, 1, 255);
-//	IVC* image_binary_blob_labelling = vc_image_new(original_bgr->width, original_bgr->height, 1, 255);
-//
-//	TrackedCoin trackedCoins[MAX_TRACKED_COINS];
-//	int coin_id_counter = 1;
-//
-//	while (key != 'q') {
-//		/* Leitura de uma frame do v�deo */
-//		capture.read(frame);
-//
-//		/* Verifica se conseguiu ler a frame */
-//		if (frame.empty()) break;
-//
-//		/* N�mero da frame a processar */
-//		video.nframe = (int)capture.get(cv::CAP_PROP_POS_FRAMES);
-//
-//		// Copiar dados de imagem da estrutura cv::Mat para IVC
-//		memcpy(original_bgr->data, frame.data, video.width* video.height * 3);
-//		memcpy(image_bgr->data, frame.data, video.width* video.height * 3);
-//
-//		//Converte de BGR para HSV
-//		vc_bgr_to_hsv(image_bgr, image_hsv);
-//
-//		vc_hsv_to_segmentation_GoldSilverCopper(image_hsv, image_thresh, hsvGold, hsvSilver, hsvCopper);
-//
-//		cv::Mat src(image_thresh->height, image_thresh->width, CV_8UC1, image_thresh->data);
-//		cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(15, 15));
-//		cv::morphologyEx(src, dst, cv::MORPH_CLOSE, kernel);
-//
-//		memcpy(image_thresh->data, dst.data, video.width* video.height * 1);
-//
-//		int nBlobs;
-//		OVC* blobs = vc_binary_blob_labelling(image_thresh, image_binary_blob_labelling, &nBlobs);
-//
-//		cv::Mat labeledFrame(video.height, video.width, CV_8UC3, image_bgr->data);
-//		// Filter and draw bounding boxes on circular blobs (coins)
-//		for (int i = 0; i < nBlobs; i++) {
-//			// Defensive: avoid division by zero
-//			if (blobs[i].perimeter <= 0) continue;
-//
-//			// Calculate circularity
-//			float circularity = (4.0f * 3.14159265f * blobs[i].area) / (blobs[i].perimeter * blobs[i].perimeter);
-//
-//			// Update: Increase circularity threshold to 0.8 for stricter detection
-//			if (circularity >= 0.9f) {
-//				// Check aspect ratio (coins should have a ratio close to 1)
-//				float aspect_ratio = (float)blobs[i].width / blobs[i].height;
-//				if (aspect_ratio > 1.1f || aspect_ratio < 0.9f) continue;
-//
-//				// Filter by size (coins typically fall within a size range)
-//				if (blobs[i].area < 10000 || blobs[i].area > 30000) continue;
-//
-//				// Draw rectangle on color image (image_bgr)
-//				/*draw_rectangle(image_bgr, blobs[i].x, blobs[i].y, blobs[i].width, blobs[i].height, 0, 0, 255);*/
-//				cv::rectangle(
-//					labeledFrame,
-//					cv::Rect(blobs[i].x, blobs[i].y, blobs[i].width, blobs[i].height),
-//					cv::Scalar(0, 0, 255), // Red color
-//					2                     // Thickness
-//				);
-//
-//				// Draw label above the rectangle
-//				std::string label = "Coin";
-//				cv::putText(
-//					labeledFrame,
-//					label,
-//					cv::Point(blobs[i].x, blobs[i].y - 10),
-//					cv::FONT_HERSHEY_SIMPLEX,
-//					0.7,                   // Font scale
-//					cv::Scalar(0, 0, 0), // Green color
-//					2                     // Thickness
-//				);
-//			}
-//		}
-//
-//		///* Exemplo de inser��o texto na frame */
-//		//str = std::string("RESOLUCAO: ").append(std::to_string(video.width)).append("x").append(std::to_string(video.height));
-//		//cv::putText(frame, str, cv::Point(20, 25), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 0, 0), 2);
-//		//cv::putText(frame, str, cv::Point(20, 25), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(255, 255, 255), 1);
-//
-//		cv::Mat binaryImageMat(video.height, video.width, CV_8UC1, image_thresh->data);
-//		cv::Mat coloredWithRectangles(video.height, video.width, CV_8UC3, image_bgr->data);
-//		cv::imshow("VC - VIDEO", coloredWithRectangles);
-//		cv::imshow("VC - VIDEO2", binaryImageMat);
-//
-//		/* Sai da aplica��o, se o utilizador premir a tecla 'q' */
-//		key = cv::waitKey(20);
-//	}
-//
-//	vc_image_free(original_bgr);
-//	vc_image_free(image_bgr);
-//	vc_image_free(image_hsv);
-//	vc_image_free(image_thresh);
-//	vc_image_free(image_binary_blob_labelling);
-//
-//	/* Para o timer e exibe o tempo decorrido */
-//	vc_timer();
-//
-//	/* Fecha a janela */
-//	cv::destroyWindow("VC - VIDEO2");
-//	cv::destroyWindow("VC - VIDEO");
-//
-//	/* Fecha o ficheiro de v�deo */
-//	capture.release();
-//
-//	return 0;
-//}
-
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//           INSTITUTO POLITÉCNICO DO CÁVADO E DO AVE
+//                          2024/2025
+//             ENGENHARIA DE SISTEMAS INFORMÁTICOS
+//                    VISÃO POR COMPUTADOR
+//						 [  GRUPO 15  ]
+//					 20349 - Flávio Costa
+//					 24160 - Hugo Marques
+//					 26402 - Rafael Ferreira
+//					 23036 - Marco Alves
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 #include <iostream>
 #include <string>
 #include <chrono>
@@ -208,30 +19,16 @@
 
 extern "C" {
 #include "vc.h"
+#include "constants.h"
 #include <math.h>
+#include <windows.h>
+
 }
-
-#define MAX_BLOBS 1000
-#define MAX_TRACKED_COINS 100
-
-// === TRACKING CODE START ===
-typedef struct {
-    int id;
-    int cx, cy;
-    int frames_seen;
-    int frames_missing;
-    int active;
-} TrackedCoin;
 
 TrackedCoin trackedCoins[MAX_TRACKED_COINS];
 int coin_id_counter = 1;
 
-float distance(int x1, int y1, int x2, int y2) {
-    return sqrtf((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
-}
-// === TRACKING CODE END ===
-
-void vc_timer(void) {
+void vc_timer(bool pause = false) {
     static bool running = false;
     static std::chrono::steady_clock::time_point previousTime = std::chrono::steady_clock::now();
 
@@ -245,179 +42,251 @@ void vc_timer(void) {
         double nseconds = time_span.count();
 
         std::cout << "Tempo decorrido: " << nseconds << " segundos" << std::endl;
-        std::cout << "Pressione qualquer tecla para continuar...\n";
-        std::cin.get();
+        if (pause) {
+            std::cout << "Pressione qualquer tecla para continuar...\n";
+            std::cin.get();
+        }
     }
 }
 
+
 int main(void) {
-    char videofile[20] = "video1.mp4";
-    cv::VideoCapture capture;
-    struct {
-        int width, height;
-        int ntotalframes;
-        int fps;
-        int nframe;
-    } video;
-    std::string str;
-    int key = 0;
+	// Permitir UTF-8 na consola para carateres especiais
+    SetConsoleOutputCP(CP_UTF8);
 
-    capture.open(videofile);
+    char videofiles[2][20] = {"video1.mp4", "video2.mp4"};
+    int num_files = sizeof(videofiles) / sizeof(videofiles[0]);
 
-    if (!capture.isOpened()) {
-        std::cerr << "Erro ao abrir o ficheiro de vídeo!\n";
-        return 1;
-    }
+    TrackedCoin trackedCoinsVideos[2][MAX_TRACKED_COINS] = { 0 };
 
-    video.ntotalframes = (int)capture.get(cv::CAP_PROP_FRAME_COUNT);
-    video.fps = (int)capture.get(cv::CAP_PROP_FPS);
-    video.width = (int)capture.get(cv::CAP_PROP_FRAME_WIDTH);
-    video.height = (int)capture.get(cv::CAP_PROP_FRAME_HEIGHT);
+	for (int v = 0; v < num_files; v++) {
+        // Definição do nome do vídeo a processar
+        cv::VideoCapture capture;
+        Video video;
+        std::string str;
+        int key = 0;
 
-    cv::namedWindow("VC - VIDEO", cv::WINDOW_NORMAL);
-    cv::namedWindow("VC - VIDEO2", cv::WINDOW_NORMAL);
-    cv::resizeWindow("VC - VIDEO", 640, 480);
-    cv::resizeWindow("VC - VIDEO2", 640, 480);
+        // Verifica se o ficheiro de vídeo existe
+        capture.open(videofiles[v]);
+        if (!capture.isOpened()) {
+            std::cerr << "Erro ao abrir o ficheiro de vídeo!\n";
+            return 1;
+        }
 
-    vc_timer();
+        // Definição do tamanho do vídeo
+        video.width = (int)capture.get(cv::CAP_PROP_FRAME_WIDTH);
+        video.height = (int)capture.get(cv::CAP_PROP_FRAME_HEIGHT);
 
-    cv::Mat frame, dst;
+        cv::namedWindow("VC - VIDEO", cv::WINDOW_NORMAL);
 
-    int hsvGold[6] = { 29, 90, 20, 100, 12, 60 };
-    int hsvSilver[6] = { 45, 180, 3, 23, 13, 41 };
-    int hsvCopper[6] = { 18, 40, 40, 80, 15, 45 };
+        vc_timer(false);
+        cv::Mat frame;
 
-    IVC* original_bgr = vc_image_new(video.width, video.height, 3, 255);
-    IVC* image_bgr = vc_image_new(original_bgr->width, original_bgr->height, original_bgr->channels, original_bgr->levels);
-    IVC* image_hsv = vc_image_new(original_bgr->width, original_bgr->height, original_bgr->channels, original_bgr->levels);
-    IVC* image_thresh = vc_image_new(original_bgr->width, original_bgr->height, 1, 255);
-    IVC* image_binary_blob_labelling = vc_image_new(original_bgr->width, original_bgr->height, 1, 255);
+        // Definição dos limites HSV para as moedas
+        int hsvGold[6] = {
+            HSV_GOLD_H_MIN, HSV_GOLD_H_MAX, HSV_GOLD_S_MIN,
+            HSV_GOLD_S_MAX, HSV_GOLD_V_MIN, HSV_GOLD_V_MAX
+        };
+        int hsvSilver[6] = {
+            HSV_SILVER_H_MIN, HSV_SILVER_H_MAX, HSV_SILVER_S_MIN,
+            HSV_SILVER_S_MAX, HSV_SILVER_V_MIN, HSV_SILVER_V_MAX
+        };
+        int hsvCopper[6] = {
+            HSV_COPPER_H_MIN, HSV_COPPER_H_MAX, HSV_COPPER_S_MIN,
+            HSV_COPPER_S_MAX, HSV_COPPER_V_MIN, HSV_COPPER_V_MAX
+        };
 
-    // === TRACKING CODE START ===
-    for (int i = 0; i < MAX_TRACKED_COINS; i++) {
-        trackedCoins[i].active = 0;
-    }
-    int unique_ids_seen[MAX_TRACKED_COINS] = { 0 };
-    int total_unique_coins = 0;
-    // === TRACKING CODE END ===
+        // Definição dos limites de área para as moedas
+        int coinAreas[12] = {
+            AREA_2EURO_MIN, AREA_2EURO_MAX,
+            AREA_50CENT_MIN, AREA_50CENT_MAX,
+            AREA_1EURO_20CENT_5CENT_MIN, AREA_1EURO_20CENT_5CENT_MAX,
+            AREA_10CENT_MIN, AREA_10CENT_MAX,
+            AREA_2CENT_MIN, AREA_2CENT_MAX,
+            AREA_1CENT_MIN, AREA_1CENT_MAX
+        };
 
-    while (key != 'q') {
-        capture.read(frame);
-        if (frame.empty()) break;
-        video.nframe = (int)capture.get(cv::CAP_PROP_POS_FRAMES);
+        // Alocar memória para as imagens
+        IVC* image_bgr = vc_image_new(video.width, video.height, 3, 255);
+        IVC* image_hsv = vc_image_new(image_bgr->width, image_bgr->height, image_bgr->channels, image_bgr->levels);
+        IVC* image_thresh = vc_image_new(image_bgr->width, image_bgr->height, 1, 255);
+        IVC* image_binary_blob_labelling = vc_image_new(image_bgr->width, image_bgr->height, 1, 255);
 
-        memcpy(original_bgr->data, frame.data, video.width * video.height * 3);
-        memcpy(image_bgr->data, frame.data, video.width * video.height * 3);
+        // Mecanismo de rastreamento de moedas
+        for (int i = 0; i < MAX_TRACKED_COINS; i++) {
+            trackedCoins[i].active = 0;
+        }
+        int unique_ids_seen[MAX_TRACKED_COINS] = { 0 };
+        int total_unique_coins = 0;
+        float total_value = 0.0f;
 
-        vc_bgr_to_hsv(image_bgr, image_hsv);
-        vc_hsv_to_segmentation_GoldSilverCopper(image_hsv, image_thresh, hsvGold, hsvSilver, hsvCopper);
+        // Loop para identificação das moedas
+        while (key != 'q') {
+            // Captura de um frame do vídeo
+            capture.read(frame);
+            if (frame.empty()) break;
 
-        cv::Mat src(image_thresh->height, image_thresh->width, CV_8UC1, image_thresh->data);// usar memcpy
-        cv::Mat kernel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(13, 13));
-        cv::morphologyEx(src, dst, cv::MORPH_CLOSE, kernel);
-        memcpy(image_thresh->data, dst.data, video.width * video.height * 1);
+            // Copia os dados do frame para a imagem BGR
+            memcpy(image_bgr->data, frame.data, video.width * video.height * 3);
 
-        int nBlobs;
-        OVC* blobs = vc_binary_blob_labelling(image_thresh, image_binary_blob_labelling, &nBlobs);
+            // Converte a imagem BGR para HSV
+            vc_bgr_to_hsv(image_bgr, image_hsv);
 
-        cv::Mat labeledFrame(video.height, video.width, CV_8UC3, image_bgr->data);
+            // Aplica a segmentação HSV para identificar moedas de ouro, prata e cobre
+            vc_hsv_to_segmentation_GoldSilverCopper(image_hsv, image_thresh, hsvGold, hsvSilver, hsvCopper);
 
-        for (int i = 0; i < nBlobs; i++) {
-            if (blobs[i].perimeter <= 0) continue;
-            float circularity = (4.0f * 3.14159265f * blobs[i].area) / (blobs[i].perimeter * blobs[i].perimeter);
-            if (circularity >= 0.9f) {
-                float aspect_ratio = (float)blobs[i].width / blobs[i].height;
-                if (aspect_ratio > 1.1f || aspect_ratio < 0.9f) continue;
-                if (blobs[i].area < 10000 || blobs[i].area > 30000) continue;
+            // Cria uma instancia Mat com os dados da imagem binária para aplicar morfologia
+            cv::Mat src(image_thresh->height, image_thresh->width, CV_8UC1, image_thresh->data);
+            cv::morphologyEx(src, src, cv::MORPH_CLOSE, cv::getStructuringElement(cv::MORPH_ELLIPSE, {13, 13}));
 
+            // Variável para contagem de blobs
+            int nBlobs;
+
+            // Aplica a rotulagem de blobs binários
+            OVC* blobs = vc_binary_blob_labelling(image_thresh, image_binary_blob_labelling, &nBlobs);
+
+            // Validação se blobs são moedas
+            for (int i = 0; i < nBlobs; i++) {
+
+                // Verifica se o blob é circular, se está dentro dos limites de área e se está no intervalo de razão de aspecto
+                if (!isValidCircularBlob(blobs[i], 0.9f, 0.9f, 1.1f, 10000, 30000)) continue;
+
+                // Determinar o centro do blob
                 int cx = blobs[i].x + blobs[i].width / 2;
                 int cy = blobs[i].y + blobs[i].height / 2;
 
+                // Flag para verificar se a moeda foi rastreada
                 int matched = 0;
+
+                // Verifica se a moeda já foi rastreada
                 for (int j = 0; j < MAX_TRACKED_COINS; j++) {
                     if (!trackedCoins[j].active) continue;
+
+                    // Verifica a distância entre a moeda atual e a moeda rastreada
                     float d = distance(trackedCoins[j].cx, trackedCoins[j].cy, cx, cy);
+
+                    // Se a distância for menor que 120 pixels, atualiza as informações da moeda rastreada e atualiza flag matched
                     if (d < 120) {
-                        trackedCoins[j].cx = cx;
-                        trackedCoins[j].cy = cy;
-                        trackedCoins[j].frames_seen++;
-                        trackedCoins[j].frames_missing = 0;
+                        UpdateCoinFlags(&trackedCoins[j], cx, cy);
                         matched = 1;
 
-                        char label[10];
-                        sprintf_s(label, "ID %d", trackedCoins[j].id);
-                        cv::putText(labeledFrame, label, cv::Point(cx, cy), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(0, 255, 255), 2);
+                        // Prepara o texto com o Valor, o Perímetro e a Área da moeda rastreada a aparecer na moeda
+                        char label[130];
+                        sprintf_s(label, "V: %.2f, P: %d, A: %d", trackedCoins[j].value, trackedCoins[j].perimeter, trackedCoins[j].area);
+                        int label_x = blobs[i].x;
+                        int label_y = blobs[i].y - 10;
+
+                        // Previne que o texto saia da tela enquanto exibe a moeda
+                        if (label_y < 10) label_y = blobs[i].y + 20;
+
+                        // Mostra o texto na moeda
+                        cv::putText(frame, label, cv::Point(label_x, label_y), cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(255, 20, 20), 1);
                         break;
                     }
                 }
 
+                // Se a moeda não foi rastreada, tenta adicionar uma nova moeda
                 if (!matched) {
-                    for (int j = 0; j < MAX_TRACKED_COINS; j++) {
-                        if (!trackedCoins[j].active) {
-                            trackedCoins[j].id = coin_id_counter++;
-                            trackedCoins[j].cx = cx;
-                            trackedCoins[j].cy = cy;
-                            trackedCoins[j].frames_seen = 1;
-                            trackedCoins[j].frames_missing = 0;
-                            trackedCoins[j].active = 1;
+                    TryAddNewCoin(trackedCoins, &coin_id_counter, cx, cy, blobs[i], unique_ids_seen,
+                        &total_unique_coins, &total_value, *image_hsv, hsvGold, hsvSilver, hsvCopper, coinAreas);
 
-                            // Register unique ID
-                            int id = trackedCoins[j].id;
-                            int already_counted = 0;
-                            for (int k = 0; k < total_unique_coins; k++) {
-                                if (unique_ids_seen[k] == id) {
-                                    already_counted = 1;
-                                    break;
-                                }
-                            }
-                            if (!already_counted) {
-                                unique_ids_seen[total_unique_coins++] = id;
-                            }
+                    SaveUniqueTrackedCoins(trackedCoins, trackedCoinsVideos[v], MAX_TRACKED_COINS);
 
-                            break;
-                        }
-                    }
                 }
 
+                // Desenha uma caixa delimitadora à volta da moeda na tela
+                draw_rectangle(frame.data, video.width, video.height, blobs, i);
+            }
 
-                cv::rectangle(labeledFrame, cv::Rect(blobs[i].x, blobs[i].y, blobs[i].width, blobs[i].height), cv::Scalar(0, 0, 255), 2);
+            // Verifica a "Idade" da moeda rastreada e remove-a se não for vista por 7 frames
+            UpdateTrackedCoinStatus(trackedCoins, MAX_TRACKED_COINS, MAX_MISSING_FRAMES);
+
+            // Informação do total de moedas e total do valor acumulado ao longo do Video
+            char text1[40], text2[40], text3[150], text4[150];
+            sprintf_s(text1, "Total de moedas: %d", total_unique_coins);
+            sprintf_s(text2, "Valor total: %.2f", total_value);
+            sprintf_s(text3, "Premir 'P' para pausar o video");
+            sprintf_s(text4, "Premir qualquer tecla para \"despausar\"");
+            cv::putText(frame, text1, cv::Point(20, 40), cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 0, 0), 2);
+            cv::putText(frame, text2, cv::Point(20, 80), cv::FONT_HERSHEY_SIMPLEX, 0.8, cv::Scalar(255, 0, 0), 2);
+            cv::putText(frame, text3, cv::Point(20, 110), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 0, 0), 1);
+            cv::putText(frame, text4, cv::Point(20, 130), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(255, 0, 0), 1);
+
+            // Exibição do vídeo com as moedas rastreadas
+            cv::imshow("VC - VIDEO", frame);
+
+            // Verifica se a tecla 'q' foi pressionada para sair do loop
+            key = cv::waitKey(1);
+
+			// Se a tecla 'p' for pressionada, pausa o vídeo
+            if (key == 'p') {
+                cv::waitKey(0);
             }
         }
 
-        for (int j = 0; j < MAX_TRACKED_COINS; j++) {
-            if (trackedCoins[j].active) {
-                trackedCoins[j].frames_missing++;
-                if (trackedCoins[j].frames_missing > 7) {
-                    trackedCoins[j].active = 0;
+        // Liberta a memória alocada para as imagens
+        vc_image_free(image_bgr);
+        vc_image_free(image_hsv);
+        vc_image_free(image_thresh);
+        vc_image_free(image_binary_blob_labelling);
+
+        // Liberta os recursos do vídeo
+        vc_timer(false);
+        cv::destroyWindow("VC - VIDEO");
+        capture.release();
+
+		// Cria uma imagem para mostrar o resumo, reutilizando a frame
+        frame = cv::Mat(video.height, video.width, CV_8UC3, cv::Scalar(220, 220, 220));
+
+        int x_offset = 30;
+        int y_offset = 30;
+
+        for (int v = 0; v < 2; v++) {
+			// Cabeçalho para cada vídeo
+            char header[50];
+            sprintf_s(header, "=== VIDEO %d ===", v + 1);
+            cv::putText(frame, header, cv::Point(x_offset - 20, y_offset), cv::FONT_HERSHEY_SIMPLEX, 0.6, cv::Scalar(0, 0, 0), 2);
+            y_offset += 30;
+
+			// Informação de cada moeda rastreada
+            int coin_count = 0;
+			float total_value = 0.0f;
+            for (int i = 0; i < MAX_TRACKED_COINS; i++) {
+                if (trackedCoinsVideos[v][i].active) {
+                    const TrackedCoin& coin = trackedCoinsVideos[v][i];
+                    char info[150];
+                    sprintf_s(info, "ID: %d | Value: %.2f | Area: %d | Perimeter: %d",
+                        coin.id, coin.value, coin.area, coin.perimeter);
+                    cv::putText(frame, info, cv::Point(x_offset, y_offset), cv::FONT_HERSHEY_SIMPLEX, 0.4, cv::Scalar(30, 30, 30), 1);
+                    y_offset += 22;
+                    coin_count++;
+					total_value += coin.value;
                 }
             }
+
+			// Adiciona informação total de moedas e valor
+            char totalCoinsInfo[100];
+            sprintf_s(totalCoinsInfo, "Total Coins: %d, Total Value : %.2fEuros", coin_count, total_value);
+            y_offset += 10;
+            cv::putText(frame, totalCoinsInfo, cv::Point(x_offset, y_offset), cv::FONT_HERSHEY_SIMPLEX, 0.45, cv::Scalar(20, 20, 20), 1);
+
+			// Reposiciona os offsets para o próximo vídeo
+            y_offset = 30;
+            x_offset += 400;
         }
 
-      
+		// Mostra mensagem de prompt para continuar
+        char info2[150];
+        sprintf_s(info2, "Prima qualquer tecla para continuar...");
+        cv::putText(frame, info2, cv::Point(30, frame.rows - 30), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(30, 30, 30), 1);
 
-        char text[50];
-        sprintf_s(text, "Total Coins: %d", total_unique_coins);
 
-        cv::putText(labeledFrame, text, cv::Point(20, 40), cv::FONT_HERSHEY_SIMPLEX, 1.0, cv::Scalar(0, 0, 0), 2);
+		// Mostra sumário dos vídeos
+        cv::imshow("VC - VIDEO", frame);
+        std::cout << "\nResumo de moedas dos dois vídeos.\nPressione qualquer tecla para sair...\n";
+        cv::waitKey(0);
 
-        cv::Mat binaryImageMat(video.height, video.width, CV_8UC1, image_thresh->data);
-        cv::imshow("VC - VIDEO", labeledFrame);
-        cv::imshow("VC - VIDEO2", binaryImageMat);
-
-        key = cv::waitKey(10);
-    }
-
-    vc_image_free(original_bgr);
-    vc_image_free(image_bgr);
-    vc_image_free(image_hsv);
-    vc_image_free(image_thresh);
-    vc_image_free(image_binary_blob_labelling);
-
-    vc_timer();
-    cv::destroyWindow("VC - VIDEO2");
-    cv::destroyWindow("VC - VIDEO");
-    capture.release();
-
+	}
     return 0;
 }
 
